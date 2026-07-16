@@ -29,7 +29,8 @@ def test_initialize_and_tools_list(fixture_db):
     assert s.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
     tools = _rpc(s, "tools/list")["result"]["tools"]
     names = {t["name"] for t in tools}
-    assert names == {"get_context", "get_activity", "get_day_summary", "get_patterns"}
+    assert names == {"get_context", "get_activity", "get_day_summary",
+                 "get_patterns", "get_communications"}
 
 
 def test_tool_call_get_activity(fixture_db):
@@ -68,3 +69,25 @@ def test_serve_loop_over_stdio(fixture_db):
     assert len(responses) == 3  # init, list, parse error (notification silent)
     assert responses[0]["result"]["serverInfo"]["name"] == "activity-frames"
     assert responses[-1]["error"]["code"] == -32700
+
+
+def test_tool_call_get_communications(fixture_db):
+    s = _make_server(fixture_db)
+    # The fixture's rows are 17:00-19:00 UTC on 2026-07-04; "day" is a LOCAL
+    # day, so compute the local day that contains those instants — the naive
+    # "2026-07-04" excludes them east of UTC+7.
+    from datetime import datetime, timezone
+
+    day = (datetime(2026, 7, 4, 17, 10, tzinfo=timezone.utc)
+           .astimezone().strftime("%Y-%m-%d"))
+    resp = _rpc(s, "tools/call", {
+        "name": "get_communications",
+        "arguments": {"day": day},
+    })
+    payload = json.loads(resp["result"]["content"][0]["text"])
+    assert isinstance(payload, list)
+    # The fixture's Slack flicker is a native messaging surface.
+    slack = next(p for p in payload if p["app"] == "Slack")
+    assert slack["kind"] == "messaging"
+    assert slack["titles"][0]["text"] == "general - Slack"
+    assert "bodies are not read" in slack["scope"]

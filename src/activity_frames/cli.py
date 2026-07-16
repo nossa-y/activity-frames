@@ -5,6 +5,7 @@
   aframes context --hours 3           paste-ready agent context block
   aframes apps                        per-app ledger for today
   aframes patterns --days 7           repetitive workflows
+  aframes comms --hours 24            email/messaging surfaces + titles
   aframes mcp                         run the MCP stdio server
 """
 from __future__ import annotations
@@ -74,6 +75,17 @@ def main(argv: list[str] | None = None) -> int:
     p_pat.add_argument("--days", type=int, default=7)
     _add_common(p_pat)
 
+    p_comms = sub.add_parser(
+        "comms", help="communication surfaces (email/messaging) + titles seen")
+    p_comms.add_argument("--hours", type=float, default=24.0,
+                         help="how many hours back (default 24)")
+    p_comms.add_argument("--day", help="local day YYYY-MM-DD (overrides --hours)")
+    p_comms.add_argument("--kind", choices=["email", "messaging", "messages",
+                                            "notifications"],
+                         help="filter to one kind (default: all)")
+    p_comms.add_argument("--json", action="store_true", help="emit JSON")
+    p_comms.add_argument("--db", help="path to the capture SQLite database")
+
     p_mcp = sub.add_parser("mcp", help="run the MCP stdio server")
     p_mcp.add_argument("--db", help="path to the capture SQLite database")
     p_mcp.add_argument("--layout", default=None)
@@ -110,6 +122,34 @@ def main(argv: list[str] | None = None) -> int:
         from .mcp_server import MCPServer
 
         MCPServer(args.db, args.layout).serve()
+        return 0
+
+    if args.cmd == "comms":
+        import json
+
+        try:
+            log = ActivityLog(args.db)
+        except RecorderDBNotFound as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 2
+        kinds = frozenset({args.kind}) if args.kind else None
+        try:
+            surfaces = log.communications(args.hours, day=args.day, kinds=kinds)
+        except ValueError as e:
+            print(f"error: {e} (dates are YYYY-MM-DD)", file=sys.stderr)
+            return 2
+        if args.json:
+            print(json.dumps([s.to_dict() for s in surfaces],
+                             indent=2, ensure_ascii=False))
+        else:
+            for s in surfaces:
+                where = f"{s.app}/{s.site}" if s.site else s.app
+                print(f"[{s.kind}] {where}  {s.first[:5]}-{s.last[:5]}"
+                      f"  ({s.frames_analyzed} frames)")
+                for t in s.titles:
+                    print(f"    {t.first[:5]}  x{t.count:<3} {t.text}")
+                if s.omitted_titles:
+                    print(f"    (+{s.omitted_titles} more titles)")
         return 0
 
     if getattr(args, "layout", None):

@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and versions follow semantic
 versioning. The document schema version is tracked separately in [SPEC.md](SPEC.md).
 
+## [Unreleased]
+
+### Added
+- **Communications view**: `ActivityLog.communications()` /
+  `comm_surfaces()`, the `get_communications` MCP tool, and the
+  `aframes comms` CLI command — email/messaging/notification surfaces
+  with the window titles measured on each (timing, counts, frame-id
+  evidence). Titles only, measured tier: message bodies are never read;
+  a client that doesn't put the conversation in its window title leaves
+  only its presence to report.
+
 ## [0.1.0] - 2026-07-04
 
 Initial release.

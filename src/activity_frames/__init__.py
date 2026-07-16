@@ -14,6 +14,8 @@ Quickstart:
 """
 from __future__ import annotations
 
+from .communications import COMM_KINDS, CommSurface, TitleItem
+from .communications import surfaces as comm_surfaces
 from .db import Database, RecorderDBNotFound, find_default_db
 from .emit import context_block, to_json, to_markdown, to_yaml
 from .entities import PageRef, parse_url
@@ -33,17 +35,21 @@ __all__ = [
     "ActivityLog",
     "ActivityDocument",
     "ActivityFrame",
+    "COMM_KINDS",
+    "CommSurface",
     "Coverage",
     "Database",
     "PageRef",
     "RecorderDBNotFound",
     "SCHEMA_VERSION",
     "Segment",
+    "TitleItem",
     "WorkPattern",
     "app_ledger",
     "build_day",
     "build_frames",
     "build_recent",
+    "comm_surfaces",
     "context_block",
     "coverage",
     "detect_patterns",
@@ -124,6 +130,26 @@ class ActivityLog:
 
         start, end = local_day_window_utc(day or local_day_string())
         return app_ledger(self.db, start, end)
+
+    def communications(
+        self,
+        hours: float = 24.0,
+        *,
+        day: str | None = None,
+        kinds: frozenset[str] | set[str] | None = None,
+    ) -> list[CommSurface]:
+        """Communication surfaces (email / messaging / notifications) with the
+        window titles measured on each. `day` (YYYY-MM-DD) overrides `hours`.
+
+        Titles only — message bodies are never read. See communications.py.
+        """
+        from ._time import hours_ago_window_utc, local_day_window_utc
+
+        if day:
+            start, end = local_day_window_utc(day)
+        else:
+            start, end = hours_ago_window_utc(hours)
+        return comm_surfaces(self.db, start, end, kinds=kinds)
 
     def close(self) -> None:
         self.db.close()

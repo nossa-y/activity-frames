@@ -76,7 +76,7 @@ Every frame carries evidence pointers back to raw capture rows. Every document d
 claude mcp add activity-frames -- aframes mcp
 ```
 
-Any MCP client works: command `aframes`, args `["mcp"]`. Four tools: `get_context`, `get_activity`, `get_day_summary`, `get_patterns` (repetitive-workflow detection: repeated clicks, URL loops, daily habits).
+Any MCP client works: command `aframes`, args `["mcp"]`. Five tools: `get_context`, `get_activity`, `get_day_summary`, `get_patterns` (repetitive-workflow detection: repeated clicks, URL loops, daily habits), and `get_communications` (email/messaging surfaces with the window titles seen on each — for many clients the title carries the subject or conversation name; a client that doesn't title its windows with the conversation leaves only its presence to report. Titles only, measured tier: message bodies are never read).
 
 ## Use it from Python
 
