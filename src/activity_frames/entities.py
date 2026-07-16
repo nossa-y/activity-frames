@@ -377,6 +377,48 @@ def _chat_ai(domain, parts, q):
     return PageRef(kind="ai_chat", domain=domain)
 
 
+def _linear(domain, parts, q):
+    """Parse linear.app URLs into typed page references.
+
+    URL shapes:
+      /signin  /join/<token>               -> sign_in
+      /<workspace>/issue/<ID>/...          -> issue   (entity = issue ID, e.g. ENG-123)
+      /<workspace>/project/<slug>          -> project (entity = readable project name)
+      /<workspace>/cycles                  -> cycles
+      /<workspace>/roadmap                 -> roadmap
+      /<workspace>/inbox                   -> notifications
+      /<workspace>/my-issues               -> my_issues
+      /<workspace>/views[/<view>]          -> views
+      /<workspace>  (no sub-path)          -> dashboard (entity = workspace slug)
+    """
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+    head = parts[0]
+    if head in ("signin", "join"):
+        return PageRef(kind="sign_in", domain=domain)
+    # At this point parts[0] is the workspace slug.
+    workspace = head
+    if len(parts) == 1:
+        return PageRef(kind="dashboard", domain=domain, entity=workspace)
+    sub = parts[1]
+    if sub == "issue" and len(parts) >= 3:
+        # parts[2] is the issue ID (e.g. "ENG-123"); ignore slug tail
+        return PageRef(kind="issue", domain=domain, entity=parts[2])
+    if sub == "project" and len(parts) >= 3:
+        return PageRef(kind="project", domain=domain, entity=_slug(parts[2]))
+    if sub == "cycles":
+        return PageRef(kind="cycles", domain=domain, entity=workspace)
+    if sub == "roadmap":
+        return PageRef(kind="roadmap", domain=domain, entity=workspace)
+    if sub == "inbox":
+        return PageRef(kind="notifications", domain=domain)
+    if sub == "my-issues":
+        return PageRef(kind="my_issues", domain=domain)
+    if sub == "views":
+        return PageRef(kind="views", domain=domain)
+    return None
+
+
 def _localhost(domain, parts, q):
     return PageRef(kind="local_dev", domain=domain, entity="/".join(parts[:2]) or None)
 
@@ -408,6 +450,7 @@ _SITE_PARSERS = {
     "notion.com": _notion,
     "app.notion.com": _notion,
     "figma.com": _figma,
+    "linear.app": _linear,
     "chatgpt.com": _chat_ai,
     "chat.openai.com": _chat_ai,
     "claude.ai": _chat_ai,

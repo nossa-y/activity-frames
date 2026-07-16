@@ -142,3 +142,49 @@ def test_heuristic_layer_types_unparsed_sites():
 def test_heuristic_does_not_override_real_parsers():
     # app.notion.com starts with "app." but must stay a notion doc, not a dashboard.
     assert parse_url("https://app.notion.com/ws/Page-abc").kind == "doc"
+
+
+def test_linear_issue():
+    r = parse_url("https://linear.app/acme/issue/ENG-123/fix-null-pointer")
+    assert r.kind == "issue"
+    assert r.entity == "ENG-123"
+    assert r.domain == "linear.app"
+
+
+def test_linear_project():
+    r = parse_url("https://linear.app/acme/project/mobile-app-rewrite-abc123")
+    assert r.kind == "project"
+    assert r.entity == "mobile app rewrite abc123"
+
+
+def test_linear_workspace_dashboard():
+    r = parse_url("https://linear.app/acme")
+    assert r.kind == "dashboard"
+    assert r.entity == "acme"
+
+
+def test_linear_cycles_and_roadmap():
+    assert parse_url("https://linear.app/acme/cycles").kind == "cycles"
+    assert parse_url("https://linear.app/acme/roadmap").kind == "roadmap"
+
+
+def test_linear_inbox_and_my_issues():
+    assert parse_url("https://linear.app/acme/inbox").kind == "notifications"
+    assert parse_url("https://linear.app/acme/my-issues").kind == "my_issues"
+
+
+def test_linear_views():
+    assert parse_url("https://linear.app/acme/views").kind == "views"
+
+
+def test_linear_signin_and_join():
+    assert parse_url("https://linear.app/signin").kind == "sign_in"
+    assert parse_url("https://linear.app/join/abc123token").kind == "sign_in"
+
+
+def test_linear_unknown_subpath_falls_through_to_generic():
+    # An unrecognised workspace sub-path (e.g. /acme/team) should fall
+    # through to the generic page fallback, not raise.
+    r = parse_url("https://linear.app/acme/team")
+    assert r.kind == "page"
+    assert r.domain == "linear.app"
