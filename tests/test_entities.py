@@ -188,3 +188,56 @@ def test_linear_unknown_subpath_falls_through_to_generic():
     r = parse_url("https://linear.app/acme/team")
     assert r.kind == "page"
     assert r.domain == "linear.app"
+
+
+def test_gitlab_issue_and_merge_request():
+    i = parse_url("https://gitlab.com/acme/api/-/issues/42")
+    assert (i.kind, i.entity, i.domain) == ("issue", "acme/api#42", "gitlab.com")
+    mr = parse_url("https://gitlab.com/acme/api/-/merge_requests/7")
+    assert (mr.kind, mr.entity) == ("merge_request", "acme/api!7")
+
+
+def test_gitlab_repo_and_subgroups():
+    r = parse_url("https://gitlab.com/acme/api")
+    assert (r.kind, r.entity) == ("repo", "acme/api")
+    sub = parse_url("https://gitlab.com/acme/platform/api/-/issues/3")
+    assert (sub.kind, sub.entity) == ("issue", "acme/platform/api#3")
+
+
+def test_gitlab_code_commits_pipelines():
+    c = parse_url("https://gitlab.com/acme/api/-/blob/main/src/app.py")
+    assert (c.kind, c.entity) == ("code", "acme/api")
+    assert parse_url("https://gitlab.com/acme/api/-/tree/main/src").kind == "code"
+    cm = parse_url("https://gitlab.com/acme/api/-/commits/main")
+    assert (cm.kind, cm.entity) == ("commits", "acme/api")
+    assert parse_url("https://gitlab.com/acme/api/-/pipelines/12345").kind == "pipelines"
+
+
+def test_gitlab_unknown_project_resource_stays_repo():
+    # An unrecognised /-/ resource (e.g. releases) still types as the project.
+    r = parse_url("https://gitlab.com/acme/api/-/releases")
+    assert (r.kind, r.entity) == ("repo", "acme/api")
+    # Unnumbered issue list is the project's page, not a specific issue.
+    assert parse_url("https://gitlab.com/acme/api/-/issues").kind == "repo"
+
+
+def test_gitlab_group_search_dashboard_explore():
+    g = parse_url("https://gitlab.com/groups/acme/platform")
+    assert (g.kind, g.entity) == ("group", "acme/platform")
+    s = parse_url("https://gitlab.com/search?search=rate%20limiter")
+    assert (s.kind, s.entity) == ("search", "rate limiter")
+    assert parse_url("https://gitlab.com/dashboard/todos").kind == "dashboard"
+    assert parse_url("https://gitlab.com/explore/projects/trending").kind == "explore"
+
+
+def test_gitlab_sign_in_and_home():
+    assert parse_url("https://gitlab.com/users/sign_in").kind == "sign_in"
+    assert parse_url("https://gitlab.com/users/sign_up").kind == "sign_in"
+    assert parse_url("https://gitlab.com/").kind == "home"
+
+
+def test_gitlab_single_segment_falls_through():
+    # A single segment may be a user or a group; leave it to the generic
+    # fallback instead of guessing.
+    r = parse_url("https://gitlab.com/some-user")
+    assert (r.kind, r.domain, r.entity) == ("page", "gitlab.com", "some-user")

@@ -419,6 +419,68 @@ def _linear(domain, parts, q):
     return None
 
 
+def _gitlab(domain, parts, q):
+    """Parse gitlab.com URLs into typed page references.
+
+    GitLab separates the project path (which may contain subgroups) from
+    the resource with a literal "-" path segment:
+      /users/sign_in | sign_up | password   -> sign_in
+      /search?search=...                    -> search  (GitLab uses ?search=)
+      /dashboard/...                        -> dashboard
+      /explore/...                          -> explore
+      /groups/<group>[/subgroup]            -> group
+      /<ns>/<repo>/-/issues/<n>             -> issue          (entity "ns/repo#n")
+      /<ns>/<repo>/-/merge_requests/<n>     -> merge_request  (entity "ns/repo!n")
+      /<ns>/<repo>/-/blob|tree/...          -> code
+      /<ns>/<repo>/-/commit(s)/...          -> commits
+      /<ns>/<repo>/-/pipelines...           -> pipelines
+      /<ns>/<repo>[/-/<other>]              -> repo
+    A single path segment may be a user or a group; that ambiguity is
+    left to the generic fallback rather than guessed.
+    """
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+    head = parts[0]
+    if head == "users":
+        if len(parts) > 1 and parts[1] in ("sign_in", "sign_up", "password", "confirmation"):
+            return PageRef(kind="sign_in", domain=domain)
+        return None
+    if head == "search":
+        return PageRef(kind="search", domain=domain,
+                       entity=unquote(q.get("search", [""])[0]).strip() or None)
+    if head == "dashboard":
+        return PageRef(kind="dashboard", domain=domain,
+                       entity=parts[1] if len(parts) > 1 else None)
+    if head == "explore":
+        return PageRef(kind="explore", domain=domain)
+    if head == "groups" and len(parts) > 1:
+        tail = parts[1:]
+        if "-" in tail:
+            tail = tail[:tail.index("-")]
+        return PageRef(kind="group", domain=domain, entity="/".join(tail) or None)
+    if "-" in parts:
+        cut = parts.index("-")
+        project = "/".join(parts[:cut])
+        rest = parts[cut + 1:]
+        if not project:
+            return None
+        res = rest[0] if rest else ""
+        if res == "issues" and len(rest) > 1 and rest[1].isdigit():
+            return PageRef(kind="issue", domain=domain, entity=f"{project}#{rest[1]}")
+        if res == "merge_requests" and len(rest) > 1 and rest[1].isdigit():
+            return PageRef(kind="merge_request", domain=domain, entity=f"{project}!{rest[1]}")
+        if res in ("blob", "tree"):
+            return PageRef(kind="code", domain=domain, entity=project)
+        if res in ("commit", "commits"):
+            return PageRef(kind="commits", domain=domain, entity=project)
+        if res == "pipelines":
+            return PageRef(kind="pipelines", domain=domain, entity=project)
+        return PageRef(kind="repo", domain=domain, entity=project)
+    if len(parts) >= 2:
+        return PageRef(kind="repo", domain=domain, entity="/".join(parts))
+    return None
+
+
 def _localhost(domain, parts, q):
     return PageRef(kind="local_dev", domain=domain, entity="/".join(parts[:2]) or None)
 
@@ -426,6 +488,7 @@ def _localhost(domain, parts, q):
 _SITE_PARSERS = {
     "linkedin.com": _linkedin,
     "github.com": _github,
+    "gitlab.com": _gitlab,
     "google.com": _google,
     "docs.google.com": _google_docs,
     "mail.google.com": _gmail,
