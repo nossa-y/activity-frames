@@ -241,3 +241,19 @@ def test_gitlab_single_segment_falls_through():
     # fallback instead of guessing.
     r = parse_url("https://gitlab.com/some-user")
     assert (r.kind, r.domain, r.entity) == ("page", "gitlab.com", "some-user")
+
+
+def test_crunchbase_company_and_profile():
+    org = parse_url("https://www.crunchbase.com/organization/getcleed")
+    assert (org.kind, org.domain, org.entity) == ("company", "crunchbase.com", "getcleed")
+    person = parse_url("https://www.crunchbase.com/person/nossa-iyamu")
+    assert (person.kind, person.domain, person.entity) == ("profile", "crunchbase.com", "nossa iyamu")
+
+
+def test_crunchbase_funding_and_discover():
+    funding = parse_url("https://www.crunchbase.com/funding_round/getcleed-seed--abc12345")
+    assert (funding.kind, funding.entity) == ("funding_round", "getcleed seed abc12345")
+    search = parse_url("https://www.crunchbase.com/discover/organization.companies")
+    assert search.kind == "search"
+    assert search.entity == "organization.companies"
+

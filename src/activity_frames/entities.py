@@ -485,7 +485,31 @@ def _localhost(domain, parts, q):
     return PageRef(kind="local_dev", domain=domain, entity="/".join(parts[:2]) or None)
 
 
+def _crunchbase(domain, parts, q):
+    """Parse crunchbase.com URLs.
+    
+    URL shapes:
+      /organization/<name>           -> company
+      /person/<name>                 -> profile
+      /funding_round/<id>            -> funding_round
+      /discover/...                  -> search
+    """
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+    head = parts[0]
+    if head == "organization" and len(parts) > 1:
+        return PageRef(kind="company", domain=domain, entity=_slug(parts[1]))
+    if head == "person" and len(parts) > 1:
+        return PageRef(kind="profile", domain=domain, entity=_slug(parts[1]))
+    if head == "funding_round" and len(parts) > 1:
+        return PageRef(kind="funding_round", domain=domain, entity=_slug(parts[1]))
+    if head == "discover":
+        return PageRef(kind="search", domain=domain, entity=parts[1] if len(parts) > 1 else "discover")
+    return None
+
+
 _SITE_PARSERS = {
+    "crunchbase.com": _crunchbase,
     "linkedin.com": _linkedin,
     "github.com": _github,
     "gitlab.com": _gitlab,
