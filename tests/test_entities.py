@@ -129,6 +129,19 @@ def test_discord_and_notion():
     assert n.entity == "My Project Notes"
 
 
+def test_slack_web_client():
+    channel = parse_url("https://app.slack.com/client/T123/C456")
+    assert (channel.kind, channel.domain, channel.entity) == (
+        "messaging", "app.slack.com", "T123/C456"
+    )
+    root = parse_url("https://app.slack.com/client")
+    assert (root.kind, root.entity) == ("messaging", None)
+    archive = parse_url("https://acme.slack.com/archives/C456")
+    assert (archive.kind, archive.domain, archive.entity) == (
+        "messaging", "acme.slack.com", "C456"
+    )
+
+
 def test_heuristic_layer_types_unparsed_sites():
     # No bespoke parser for these hosts, but heuristics still type them.
     assert parse_url("https://accounts.google.com/signin/v2").kind == "sign_in"

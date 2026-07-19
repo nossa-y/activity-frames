@@ -358,6 +358,19 @@ def _discord(domain, parts, q):
     return PageRef(kind="app", domain=domain)
 
 
+def _slack(domain, parts, q):
+    """Type the browser client without inferring a channel name from IDs."""
+    if domain == "app.slack.com" and parts and parts[0] == "client":
+        # Client URLs are /client/<workspace>/<channel-or-DM>. The IDs are
+        # useful evidence, but the title is the human-readable measured name.
+        entity = "/".join(parts[1:3]) or None
+        return PageRef(kind="messaging", domain=domain, entity=entity)
+    if domain.endswith(".slack.com") and len(parts) > 1 and parts[0] == "archives":
+        # Workspace archive permalinks identify the channel but not its name.
+        return PageRef(kind="messaging", domain=domain, entity=parts[1])
+    return None
+
+
 def _notion(domain, parts, q):
     if parts:
         # Notion slugs end with the page id; the readable part is the prefix.
@@ -509,6 +522,7 @@ _SITE_PARSERS = {
     "supabase.com": _supabase,
     "dashboard.stripe.com": _stripe,
     "discord.com": _discord,
+    "slack.com": _slack,
     "notion.so": _notion,
     "notion.com": _notion,
     "app.notion.com": _notion,

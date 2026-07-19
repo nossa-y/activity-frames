@@ -51,6 +51,9 @@ def comms_db(tmp_path):
         # LinkedIn messaging (typed by the URL parser, not the app map).
         ("17:10:00", "Google Chrome", "Messaging | LinkedIn",
          "https://www.linkedin.com/messaging/thread/123/"),
+        # Browser Slack must not be mistaken for a generic app-hosted dashboard.
+        ("17:12:00", "Google Chrome", "engineering - Slack",
+         "https://app.slack.com/client/T123/C456"),
         # Non-communication activity: must never appear.
         ("17:20:00", "Cursor", "main.py - project", None),
         ("17:21:00", "Google Chrome", "acme/api: PR #7",
@@ -96,6 +99,16 @@ def test_gmail_titles_are_subjects(comms_db):
     assert len(seen_twice.first) == 8 and seen_twice.first.count(":") == 2
     # The titleless inbox frame counts toward the surface, not the items.
     assert email.frames_analyzed == 4
+
+
+def test_slack_web_client_is_a_messaging_surface(comms_db):
+    slack = next(
+        s for s in surfaces(comms_db, *WINDOW) if s.site == "app.slack.com"
+    )
+    assert (slack.kind, slack.app, slack.frames_analyzed) == (
+        "messaging", "Google Chrome", 1
+    )
+    assert [t.text for t in slack.titles] == ["engineering - Slack"]
 
 
 def test_kind_filter(comms_db):
