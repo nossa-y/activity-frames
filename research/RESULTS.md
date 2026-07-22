@@ -45,12 +45,9 @@ stacked with the 86× compression or any cache discount (different token populat
 Fleet token saving = h_specific × (1 - 1/R) ≈ 0.09 × 0.997 ≈ **9% of all action-step tokens**,
 or **~99.7% of the tokens spent on the repeated fraction**. (Never stacked with 86× or cache.)
 
-## TODO (this session)
-- [ ] temporal holdout: fit routine table days 1-40, predict recurrence 41-61 (the ONE predictive claim)
-- [ ] IVM byte-equality certification (rebuild==incremental)
-- [ ] instrument card: capture overhead (bytes/day, %AX-tree, OCR duty) - "capture is not free"
-- [ ] replay-plan compiler (shipped module + tests) - turns a routine into a guarded script
-- [ ] public-dataset second subject (break n=1)
+All experiments below are complete; results in the numbered sections. Public-dataset
+replication (breaks n=1): research/measure_overhead_public.py -> Mind2Web 366x brackets
+private action 343x.
 
 ## 3. Replay-plan compiler (research/compile_replay.py) - the mechanism
 20 recurring routines compiled into deterministic guarded action plans, LLM-free.

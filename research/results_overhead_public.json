@@ -25,7 +25,7 @@
     }
   },
   "private_corpus_reference": {
-    "corpus": "private 61-day screenpipe screen capture, single user (n=1)",
+    "corpus": "private screenpipe screen capture, 51 active days over a 72-day span (2026-05-11 to 2026-07-22), single user (n=1)",
     "R_action_median": 343.0,
     "R_action_iqr": [
       297.0,
