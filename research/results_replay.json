@@ -1,0 +1,1539 @@
+{
+  "db": "/tmp/corpus_ro.sqlite",
+  "per_step_rederivation_tokens": 2509,
+  "n_plans_compiled": 20,
+  "total_compile_ms_B": 14.4,
+  "median_compile_ms_B": 0.51,
+  "median_plan_tokens": 253,
+  "median_guard_coverage": 0.43,
+  "R_inject_guarded_plan_median": 60.5,
+  "R_inject_guarded_plan_p25_p75": [
+    59.4,
+    62.2
+  ],
+  "denominator_ladder": {
+    "R_info_min_action_script": "~343x (measure_overhead.py) - info-content CEILING, ~8 tok/step",
+    "R_inject_guarded_plan": "this file - REALISTIC: inject the full guarded skill (~60 tok/step)",
+    "on_hit_local_replay": "LLM out of the loop on a guard match => ~0 tokens sent, ~99% saving; bounded by guard coverage and drift (reserved for live bench)"
+  },
+  "note": "B is CPU-only and 0 tokens - no model in compilation. Report the conservative R_inject as the operational headline; R_info is the information-content ceiling.",
+  "plans": [
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 4,
+      "occurrences": 275,
+      "compile_ms_B": 0.62,
+      "plan_tokens": 173,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 10036,
+      "R_inject_guarded_plan": 58.0
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message",
+      "steps": 5,
+      "occurrences": 180,
+      "compile_ms_B": 0.54,
+      "plan_tokens": 206,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.4,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 12545,
+      "R_inject_guarded_plan": 60.9
+    },
+    {
+      "signature": "[el] -> close button -> [el] -> close button",
+      "steps": 4,
+      "occurrences": 170,
+      "compile_ms_B": 0.11,
+      "plan_tokens": 169,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        }
+      ],
+      "rederivation_tokens": 10036,
+      "R_inject_guarded_plan": 59.4
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 5,
+      "occurrences": 165,
+      "compile_ms_B": 0.51,
+      "plan_tokens": 209,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.4,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 12545,
+      "R_inject_guarded_plan": 60.0
+    },
+    {
+      "signature": "[el] -> close button -> [el] -> close button -> [el]",
+      "steps": 5,
+      "occurrences": 164,
+      "compile_ms_B": 0.1,
+      "plan_tokens": 205,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.4,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        }
+      ],
+      "rederivation_tokens": 12545,
+      "R_inject_guarded_plan": 61.2
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 6,
+      "occurrences": 144,
+      "compile_ms_B": 0.48,
+      "plan_tokens": 259,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 58.1
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> type:field",
+      "steps": 5,
+      "occurrences": 110,
+      "compile_ms_B": 0.5,
+      "plan_tokens": 206,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.4,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 12545,
+      "R_inject_guarded_plan": 60.9
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> type:field -> [el]",
+      "steps": 6,
+      "occurrences": 109,
+      "compile_ms_B": 0.48,
+      "plan_tokens": 242,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.33,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 62.2
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message -> type:field",
+      "steps": 6,
+      "occurrences": 104,
+      "compile_ms_B": 0.53,
+      "plan_tokens": 239,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.33,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 63.0
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message -> type:field -> [el]",
+      "steps": 7,
+      "occurrences": 102,
+      "compile_ms_B": 0.51,
+      "plan_tokens": 275,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.29,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 17563,
+      "R_inject_guarded_plan": 63.9
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 7,
+      "occurrences": 94,
+      "compile_ms_B": 0.53,
+      "plan_tokens": 295,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.43,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 17563,
+      "R_inject_guarded_plan": 59.5
+    },
+    {
+      "signature": "type:field -> [el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message",
+      "steps": 6,
+      "occurrences": 91,
+      "compile_ms_B": 0.49,
+      "plan_tokens": 239,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.33,
+      "plan": [
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 63.0
+    },
+    {
+      "signature": "[el] -> close button -> [el] -> close button -> [el] -> close button",
+      "steps": 6,
+      "occurrences": 84,
+      "compile_ms_B": 0.15,
+      "plan_tokens": 253,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 59.5
+    },
+    {
+      "signature": "[el] -> close button -> [el] -> close button -> [el] -> close button -> [el]",
+      "steps": 7,
+      "occurrences": 81,
+      "compile_ms_B": 0.15,
+      "plan_tokens": 289,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.43,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "close button",
+          "role": "AXButton",
+          "guard": {
+            "expect_element": "close button",
+            "expect_role": "AXButton",
+            "expect_app": "iMovie"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "iMovie"
+          }
+        }
+      ],
+      "rederivation_tokens": 17563,
+      "R_inject_guarded_plan": 60.8
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 8,
+      "occurrences": 79,
+      "compile_ms_B": 1.26,
+      "plan_tokens": 345,
+      "guard_grounded_steps": 4,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Google Chrome"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Google Chrome"
+          }
+        }
+      ],
+      "rederivation_tokens": 20072,
+      "R_inject_guarded_plan": 58.2
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message -> [el]",
+      "steps": 6,
+      "occurrences": 75,
+      "compile_ms_B": 0.49,
+      "plan_tokens": 242,
+      "guard_grounded_steps": 2,
+      "guard_coverage": 0.33,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 15054,
+      "R_inject_guarded_plan": 62.2
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 7,
+      "occurrences": 69,
+      "compile_ms_B": 0.46,
+      "plan_tokens": 292,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.43,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 17563,
+      "R_inject_guarded_plan": 60.1
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose message",
+      "steps": 8,
+      "occurrences": 64,
+      "compile_ms_B": 0.52,
+      "plan_tokens": 325,
+      "guard_grounded_steps": 3,
+      "guard_coverage": 0.38,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "type",
+          "target": "field",
+          "role": "",
+          "guard": {
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "\u200eWhatsApp"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "\u200eWhatsApp"
+          }
+        }
+      ],
+      "rederivation_tokens": 20072,
+      "R_inject_guarded_plan": 61.8
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 9,
+      "occurrences": 55,
+      "compile_ms_B": 3.27,
+      "plan_tokens": 381,
+      "guard_grounded_steps": 4,
+      "guard_coverage": 0.44,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        }
+      ],
+      "rederivation_tokens": 22581,
+      "R_inject_guarded_plan": 59.3
+    },
+    {
+      "signature": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 10,
+      "occurrences": 48,
+      "compile_ms_B": 2.72,
+      "plan_tokens": 431,
+      "guard_grounded_steps": 5,
+      "guard_coverage": 0.5,
+      "plan": [
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "",
+          "role": "",
+          "guard": {
+            "expect_element": "",
+            "expect_role": "",
+            "expect_app": "Slack"
+          }
+        },
+        {
+          "op": "click",
+          "target": "\u200eCompose message",
+          "role": "AXTextArea",
+          "guard": {
+            "expect_element": "\u200eCompose message",
+            "expect_role": "AXTextArea",
+            "expect_app": "Slack"
+          }
+        }
+      ],
+      "rederivation_tokens": 25090,
+      "R_inject_guarded_plan": 58.2
+    }
+  ]
+}

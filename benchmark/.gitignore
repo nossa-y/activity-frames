@@ -1,0 +1,10 @@
+# The benchmark runs against YOUR OWN local capture database.
+# Every generated artifact below is derived from personal activity data
+# (window titles, URLs, contact names, filenames) and must never be committed.
+oracle.json
+questions.json
+results.json
+table_qa.tex
+reps/
+*.json
+__pycache__/

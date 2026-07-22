@@ -1,0 +1,143 @@
+{
+  "arms": "A=memoryless agent, B=agent+injected plan, C=deterministic local replay",
+  "pricing": "Sonnet-class $3/$15 per MTok; output fraction 0.07",
+  "guard_coverage_median": 0.43,
+  "n_routines": 20,
+  "fleet_tokens": {
+    "A_rederive": 32762522,
+    "B_inject": 5457001,
+    "C_replay": 18908199
+  },
+  "fleet_dollars": {
+    "A": 125.81,
+    "B": 20.95,
+    "C": 72.61
+  },
+  "fleet_savings_vs_A": {
+    "B_inject": "83.3%",
+    "C_replay": "42.3%"
+  },
+  "caveat": "MODELED from measured artifacts, not billed. Arm C credits the guard-match fraction only; the deopt fraction pays full arm-A cost. Replace with --live billed numbers before any launch claim of dollars saved.",
+  "rows": [
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message",
+      "steps": 4,
+      "occurrences": 275,
+      "A_rederive_tok": 10036,
+      "B_inject_tok": 1678,
+      "C_replay_tok": 5795,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose m",
+      "steps": 5,
+      "occurrences": 180,
+      "A_rederive_tok": 12545,
+      "B_inject_tok": 2088,
+      "C_replay_tok": 7239,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> close button -> [el] -> close button",
+      "steps": 4,
+      "occurrences": 170,
+      "A_rederive_tok": 10036,
+      "B_inject_tok": 1674,
+      "C_replay_tok": 5793,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 5,
+      "occurrences": 165,
+      "A_rederive_tok": 12545,
+      "B_inject_tok": 2091,
+      "C_replay_tok": 7241,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> close button -> [el] -> close button -> [el]",
+      "steps": 5,
+      "occurrences": 164,
+      "A_rederive_tok": 12545,
+      "B_inject_tok": 2087,
+      "C_replay_tok": 7239,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 6,
+      "occurrences": 144,
+      "A_rederive_tok": 15054,
+      "B_inject_tok": 2517,
+      "C_replay_tok": 8692,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> type",
+      "steps": 5,
+      "occurrences": 110,
+      "A_rederive_tok": 12545,
+      "B_inject_tok": 2088,
+      "C_replay_tok": 7239,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> type",
+      "steps": 6,
+      "occurrences": 109,
+      "A_rederive_tok": 15054,
+      "B_inject_tok": 2500,
+      "C_replay_tok": 8685,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose m",
+      "steps": 6,
+      "occurrences": 104,
+      "A_rederive_tok": 15054,
+      "B_inject_tok": 2497,
+      "C_replay_tok": 8684,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> type:field -> [el] -> \u200eCompose m",
+      "steps": 7,
+      "occurrences": 102,
+      "A_rederive_tok": 17563,
+      "B_inject_tok": 2909,
+      "C_replay_tok": 10129,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "[el] -> \u200eCompose message -> [el] -> \u200eCompose message -> [el]",
+      "steps": 7,
+      "occurrences": 94,
+      "A_rederive_tok": 17563,
+      "B_inject_tok": 2929,
+      "C_replay_tok": 10138,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    },
+    {
+      "routine": "type:field -> [el] -> \u200eCompose message -> type:field -> [el]",
+      "steps": 6,
+      "occurrences": 91,
+      "A_rederive_tok": 15054,
+      "B_inject_tok": 2497,
+      "C_replay_tok": 8684,
+      "A_over_C": 1.7,
+      "A_over_B": 6.0
+    }
+  ]
+}

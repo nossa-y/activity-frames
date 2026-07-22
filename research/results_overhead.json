@@ -1,0 +1,431 @@
+{
+  "db": "/tmp/corpus_ro.sqlite",
+  "tokenizer": "cl100k_base",
+  "params": {
+    "MIN_FREQUENCY": 3,
+    "SESSION_GAP_S": 90,
+    "MIN_STEPS": 3,
+    "MAX_STEPS": 60,
+    "CTX_IN_PER_STEP": 350,
+    "REASON_OUT_PER_STEP": 180,
+    "screen_params_tok": {
+      "conservative_1280x800": 1365,
+      "typical_1512x982": 1979,
+      "retina_1728x1117": 2573
+    },
+    "numerator": "MODELED (k*(screenshot+ctx+reason), Anthropic w*h/750 image tokens)",
+    "denominator": "MEASURED (tiktoken of deterministic replay script)"
+  },
+  "results": {
+    "action": {
+      "summary": {
+        "granularity": "action",
+        "tokenizer": "cl100k_base",
+        "n_routines": 614,
+        "total_routine_instances": 5508,
+        "R_typical_median": 343.25,
+        "R_typical_p25": 297.1,
+        "R_typical_p75": 389.7,
+        "R_typical_min": 167.3,
+        "R_typical_max": 508.6,
+        "R_recurrence_weighted_mean": 337.4,
+        "R_range_over_screen_params": {
+          "conservative_1280x800_median": 259.25,
+          "retina_1728x1117_median": 424.5
+        },
+        "replay_tokens_median": 40.0,
+        "steps_median": 5.0,
+        "occurrences_median": 4.0,
+        "occurrences_max": 181
+      },
+      "coverage_h": {
+        "total_action_steps": 51174,
+        "n_sessions": 1799,
+        "h_raw_any_recurring": 0.8312,
+        "h_specific_delegable": 0.0904,
+        "steps_inside_specific_routines": 4628,
+        "n_frequent_ngrams": 10682,
+        "n_specific_ngrams": 1726
+      },
+      "R_by_steps": {
+        "16+": {
+          "n": 59,
+          "R_median": 401.4
+        },
+        "3-4": {
+          "n": 258,
+          "R_median": 301.1
+        },
+        "5-8": {
+          "n": 198,
+          "R_median": 358.4
+        },
+        "9-15": {
+          "n": 99,
+          "R_median": 404.7
+        }
+      },
+      "top_routines": [
+        {
+          "granularity": "action",
+          "steps": 4,
+          "occurrences": 168,
+          "replay_tokens_den": 33,
+          "R_by_screen": {
+            "conservative_1280x800": 229.7,
+            "typical_1512x982": 304.1,
+            "retina_1728x1117": 376.1
+          },
+          "R_typical": 304.1,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message -> type:field"
+        },
+        {
+          "granularity": "action",
+          "steps": 5,
+          "occurrences": 130,
+          "replay_tokens_den": 38,
+          "R_by_screen": {
+            "conservative_1280x800": 249.3,
+            "typical_1512x982": 330.1,
+            "retina_1728x1117": 408.3
+          },
+          "R_typical": 330.1,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field"
+        },
+        {
+          "granularity": "action",
+          "steps": 6,
+          "occurrences": 101,
+          "replay_tokens_den": 43,
+          "R_by_screen": {
+            "conservative_1280x800": 264.4,
+            "typical_1512x982": 350.1,
+            "retina_1728x1117": 433.0
+          },
+          "R_typical": 350.1,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field"
+        },
+        {
+          "granularity": "action",
+          "steps": 4,
+          "occurrences": 138,
+          "replay_tokens_den": 32,
+          "R_by_screen": {
+            "conservative_1280x800": 236.9,
+            "typical_1512x982": 313.6,
+            "retina_1728x1117": 387.9
+          },
+          "R_typical": 313.6,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message"
+        },
+        {
+          "granularity": "action",
+          "steps": 3,
+          "occurrences": 181,
+          "replay_tokens_den": 27,
+          "R_by_screen": {
+            "conservative_1280x800": 210.6,
+            "typical_1512x982": 278.8,
+            "retina_1728x1117": 344.8
+          },
+          "R_typical": 278.8,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message"
+        },
+        {
+          "granularity": "action",
+          "steps": 7,
+          "occurrences": 76,
+          "replay_tokens_den": 48,
+          "R_by_screen": {
+            "conservative_1280x800": 276.4,
+            "typical_1512x982": 365.9,
+            "retina_1728x1117": 452.5
+          },
+          "R_typical": 365.9,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field"
+        },
+        {
+          "granularity": "action",
+          "steps": 5,
+          "occurrences": 105,
+          "replay_tokens_den": 37,
+          "R_by_screen": {
+            "conservative_1280x800": 256.1,
+            "typical_1512x982": 339.1,
+            "retina_1728x1117": 419.3
+          },
+          "R_typical": 339.1,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message"
+        },
+        {
+          "granularity": "action",
+          "steps": 8,
+          "occurrences": 62,
+          "replay_tokens_den": 53,
+          "R_by_screen": {
+            "conservative_1280x800": 286.0,
+            "typical_1512x982": 378.7,
+            "retina_1728x1117": 468.4
+          },
+          "R_typical": 378.7,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -"
+        },
+        {
+          "granularity": "action",
+          "steps": 6,
+          "occurrences": 79,
+          "replay_tokens_den": 42,
+          "R_by_screen": {
+            "conservative_1280x800": 270.7,
+            "typical_1512x982": 358.4,
+            "retina_1728x1117": 443.3
+          },
+          "R_typical": 358.4,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message"
+        },
+        {
+          "granularity": "action",
+          "steps": 7,
+          "occurrences": 65,
+          "replay_tokens_den": 47,
+          "R_by_screen": {
+            "conservative_1280x800": 282.2,
+            "typical_1512x982": 373.7,
+            "retina_1728x1117": 462.1
+          },
+          "R_typical": 373.7,
+          "sig_preview": "\u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message"
+        },
+        {
+          "granularity": "action",
+          "steps": 9,
+          "occurrences": 45,
+          "replay_tokens_den": 58,
+          "R_by_screen": {
+            "conservative_1280x800": 294.1,
+            "typical_1512x982": 389.3,
+            "retina_1728x1117": 481.5
+          },
+          "R_typical": 389.3,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCom"
+        },
+        {
+          "granularity": "action",
+          "steps": 8,
+          "occurrences": 47,
+          "replay_tokens_den": 52,
+          "R_by_screen": {
+            "conservative_1280x800": 291.5,
+            "typical_1512x982": 386.0,
+            "retina_1728x1117": 477.4
+          },
+          "R_typical": 386.0,
+          "sig_preview": "type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCompose message -> type:field -> \u200eCom"
+        }
+      ]
+    },
+    "url": {
+      "summary": {
+        "granularity": "url",
+        "tokenizer": "cl100k_base",
+        "n_routines": 261,
+        "total_routine_instances": 1303,
+        "R_typical_median": 198.1,
+        "R_typical_p25": 165.1,
+        "R_typical_p75": 228.1,
+        "R_typical_min": 67.2,
+        "R_typical_max": 301.1,
+        "R_recurrence_weighted_mean": 193.7,
+        "R_range_over_screen_params": {
+          "conservative_1280x800_median": 149.6,
+          "retina_1728x1117_median": 245.0
+        },
+        "replay_tokens_median": 43,
+        "steps_median": 3,
+        "occurrences_median": 4,
+        "occurrences_max": 25
+      },
+      "coverage_h": {
+        "total_action_steps": 14393,
+        "n_sessions": 1528,
+        "h_raw_any_recurring": 0.1313,
+        "h_specific_delegable": 0.1313,
+        "steps_inside_specific_routines": 1890,
+        "n_frequent_ngrams": 358,
+        "n_specific_ngrams": 358
+      },
+      "R_by_steps": {
+        "3-4": {
+          "n": 200,
+          "R_median": 202.1
+        },
+        "5-8": {
+          "n": 51,
+          "R_median": 209.1
+        },
+        "9-15": {
+          "n": 10,
+          "R_median": 143.3
+        }
+      },
+      "top_routines": [
+        {
+          "granularity": "url",
+          "steps": 3,
+          "occurrences": 25,
+          "replay_tokens_den": 34,
+          "R_by_screen": {
+            "conservative_1280x800": 167.2,
+            "typical_1512x982": 221.4,
+            "retina_1728x1117": 273.8
+          },
+          "R_typical": 221.4,
+          "sig_preview": "mail.google.com/mail/u/* -> calendar.google.com/calendar/u/* -> mail.google.com/mail/u/*"
+        },
+        {
+          "granularity": "url",
+          "steps": 3,
+          "occurrences": 19,
+          "replay_tokens_den": 37,
+          "R_by_screen": {
+            "conservative_1280x800": 153.6,
+            "typical_1512x982": 203.4,
+            "retina_1728x1117": 251.6
+          },
+          "R_typical": 203.4,
+          "sig_preview": "www.linkedin.com/feed/* -> www.linkedin.com/mynetwork/* -> www.linkedin.com/mynetwork/grow/*"
+        },
+        {
+          "granularity": "url",
+          "steps": 3,
+          "occurrences": 16,
+          "replay_tokens_den": 34,
+          "R_by_screen": {
+            "conservative_1280x800": 167.2,
+            "typical_1512x982": 221.4,
+            "retina_1728x1117": 273.8
+          },
+          "R_typical": 221.4,
+          "sig_preview": "calendar.google.com/calendar/u/* -> mail.google.com/mail/u/* -> calendar.google.com/calendar/u/*"
+        },
+        {
+          "granularity": "url",
+          "steps": 9,
+          "occurrences": 5,
+          "replay_tokens_den": 158,
+          "R_by_screen": {
+            "conservative_1280x800": 107.9,
+            "typical_1512x982": 142.9,
+            "retina_1728x1117": 176.8
+          },
+          "R_typical": 142.9,
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+        },
+        {
+          "granularity": "url",
+          "steps": 9,
+          "occurrences": 5,
+          "replay_tokens_den": 124,
+          "R_by_screen": {
+            "conservative_1280x800": 137.5,
+            "typical_1512x982": 182.1,
+            "retina_1728x1117": 225.2
+          },
+          "R_typical": 182.1,
+          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+        },
+        {
+          "granularity": "url",
+          "steps": 11,
+          "occurrences": 4,
+          "replay_tokens_den": 192,
+          "R_by_screen": {
+            "conservative_1280x800": 108.6,
+            "typical_1512x982": 143.7,
+            "retina_1728x1117": 177.8
+          },
+          "R_typical": 143.7,
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+        },
+        {
+          "granularity": "url",
+          "steps": 11,
+          "occurrences": 4,
+          "replay_tokens_den": 148,
+          "R_by_screen": {
+            "conservative_1280x800": 140.8,
+            "typical_1512x982": 186.5,
+            "retina_1728x1117": 230.6
+          },
+          "R_typical": 186.5,
+          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+        },
+        {
+          "granularity": "url",
+          "steps": 4,
+          "occurrences": 11,
+          "replay_tokens_den": 47,
+          "R_by_screen": {
+            "conservative_1280x800": 161.3,
+            "typical_1512x982": 213.5,
+            "retina_1728x1117": 264.1
+          },
+          "R_typical": 213.5,
+          "sig_preview": "www.linkedin.com/messaging/compose/* -> www.linkedin.com/messaging/thread/* -> www.linkedin.com/messaging/compose/* -> w"
+        },
+        {
+          "granularity": "url",
+          "steps": 7,
+          "occurrences": 6,
+          "replay_tokens_den": 146,
+          "R_by_screen": {
+            "conservative_1280x800": 90.9,
+            "typical_1512x982": 120.3,
+            "retina_1728x1117": 148.8
+          },
+          "R_typical": 120.3,
+          "sig_preview": "www.notion.so/to-do-23281003e48f803ea3d8d6be656d82e6/* -> calendar.google.com/calendar/u/* -> www.notion.so/to-do-232810"
+        },
+        {
+          "granularity": "url",
+          "steps": 7,
+          "occurrences": 6,
+          "replay_tokens_den": 125,
+          "R_by_screen": {
+            "conservative_1280x800": 106.1,
+            "typical_1512x982": 140.5,
+            "retina_1728x1117": 173.8
+          },
+          "R_typical": 140.5,
+          "sig_preview": "calendar.google.com/calendar/u/* -> www.notion.so/to-do-23281003e48f803ea3d8d6be656d82e6/* -> calendar.google.com/calend"
+        },
+        {
+          "granularity": "url",
+          "steps": 7,
+          "occurrences": 6,
+          "replay_tokens_den": 124,
+          "R_by_screen": {
+            "conservative_1280x800": 107.0,
+            "typical_1512x982": 141.6,
+            "retina_1728x1117": 175.2
+          },
+          "R_typical": 141.6,
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+        },
+        {
+          "granularity": "url",
+          "steps": 7,
+          "occurrences": 6,
+          "replay_tokens_den": 100,
+          "R_by_screen": {
+            "conservative_1280x800": 132.7,
+            "typical_1512x982": 175.6,
+            "retina_1728x1117": 217.2
+          },
+          "R_typical": 175.6,
+          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+        }
+      ]
+    }
+  }
+}

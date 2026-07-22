@@ -1,0 +1,16 @@
+{
+  "db": "/tmp/corpus_ro.sqlite",
+  "active_days_certified": 51,
+  "reproducibility_byte_identical": true,
+  "rebuild_equals_incremental": true,
+  "append_only_earlier_days_unchanged": true,
+  "compile_ms": {
+    "median": 220.9,
+    "min": 0.1,
+    "max": 930.0,
+    "mean_first_half_days": 251.8,
+    "mean_second_half_days": 216.4,
+    "grows_with_history": 0.859
+  },
+  "verdict": "PASS"
+}

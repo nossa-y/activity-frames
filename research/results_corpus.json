@@ -1,0 +1,38 @@
+{
+  "db": "/tmp/corpus_ro.sqlite",
+  "instrument_card": {
+    "db_bytes": 9523257344,
+    "db_gb": 9.52,
+    "gb_per_active_day": 0.187,
+    "frames": 128756,
+    "first_day": "2026-05-11",
+    "last_day": "2026-07-22",
+    "active_days": 51,
+    "frames_per_active_day": 2525,
+    "pct_frames_with_accessibility_tree": 81.5,
+    "pct_frames_with_ocr_text": 96.0,
+    "capture_triggers": {
+      "app_switch": 2494,
+      "click": 49793,
+      "idle": 23472,
+      "manual": 106,
+      "visual_change": 52891
+    },
+    "ui_event_mix": {
+      "click": 149723,
+      "text": 67026,
+      "key": 8447,
+      "clipboard": 5125,
+      "app_switch": 2577
+    },
+    "note": "capture runs continuously: on-device OCR duty ~= pct_frames_with_ocr_text; replay grounding is bounded by pct_frames_with_accessibility_tree."
+  },
+  "temporal_holdout_h": {
+    "train_days": 40,
+    "test_days": 11,
+    "n_train_routine_signatures": 4847,
+    "h_in_sample_train": 0.0863,
+    "h_out_of_sample_predicted_on_test": 0.0769,
+    "interpretation": "out-of-sample predicted-hit rate is the non-circular h the economics may use; in-sample is an upper bound."
+  }
+}
