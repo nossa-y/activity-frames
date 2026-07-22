@@ -1,0 +1,357 @@
+{
+  "dataset": {
+    "name": "osunlp/Mind2Web",
+    "license": "CC-BY-4.0",
+    "source": "https://huggingface.co/datasets/osunlp/Mind2Web",
+    "unit": "real crowdsourced web tasks; each is a human action sequence (operation + target element) collected across many live websites",
+    "split_used": "train",
+    "n_tasks_loaded": 1009,
+    "action_operation_mix": {
+      "total_actions": 7775,
+      "counts": {
+        "CLICK": 6337,
+        "TYPE": 936,
+        "SELECT": 326,
+        "HOVER": 164,
+        "ENTER": 12
+      },
+      "pct": {
+        "CLICK": 81.5,
+        "TYPE": 12.0,
+        "SELECT": 4.2,
+        "HOVER": 2.1,
+        "ENTER": 0.2
+      }
+    }
+  },
+  "private_corpus_reference": {
+    "corpus": "private 61-day screenpipe screen capture, single user (n=1)",
+    "R_action_median": 343.0,
+    "R_action_iqr": [
+      297.0,
+      390.0
+    ],
+    "R_url_median": 198.0,
+    "R_url_iqr": [
+      165.0,
+      228.0
+    ],
+    "R_action_screen_band_median": {
+      "conservative_1280x800": 259.0,
+      "retina_1728x1117": 425.0
+    },
+    "n_action_routines": 614,
+    "replay_tokens_note": "~8 tok/step"
+  },
+  "generated_unix": 1784693980,
+  "status": "ok",
+  "method": {
+    "R_definition": "num(memoryless screenshot-driven re-derivation) / den(deterministic replay script)",
+    "tokenizer": "cl100k_base",
+    "numerator_model": {
+      "screenshot_driven": "k*(screenshot_tok + 350 ctx + 180 reason)  [IMPORTED from measure_overhead.py, IDENTICAL to private measurement]",
+      "action_count_lowerbound": "k*(350 ctx + 180 reason)  [no per-step screenshot]",
+      "screenshot_tok_by_resolution": {
+        "conservative_1280x800": 1365,
+        "typical_1512x982": 1979,
+        "retina_1728x1117": 2573
+      },
+      "image_token_formula": "Anthropic vision: tokens = width*height/750"
+    },
+    "denominator_model": {
+      "template": "compact 'verb target <value>' per action + header, cl100k tokens (mirrors measure_overhead.replay_script; apples-to-apples with private 343x)",
+      "raw": "verbatim dataset action_repr per action + header (keeps element tag AND concrete value) => larger denominator => conservative lower R"
+    },
+    "params_imported_from_measure_overhead": {
+      "CTX_IN_PER_STEP": 350,
+      "REASON_OUT_PER_STEP": 180,
+      "SCREEN_PARAMS": {
+        "conservative_1280x800": 1365,
+        "typical_1512x982": 1979,
+        "retina_1728x1117": 2573
+      },
+      "MIN_FREQUENCY": 3,
+      "MIN_STEPS": 3,
+      "MAX_STEPS": 60
+    },
+    "data_provenance": {
+      "source": "huggingface_parquet",
+      "files": 8,
+      "columns_fetched": [
+        "annotation_id",
+        "website",
+        "domain",
+        "subdomain",
+        "confirmed_task",
+        "action_reprs"
+      ]
+    },
+    "read_only": true
+  },
+  "per_task": {
+    "n_tasks": 1009,
+    "n_websites": 73,
+    "n_subdomains": 17,
+    "n_domains": 3,
+    "steps_distribution": {
+      "median": 6,
+      "p25": 4,
+      "p75": 10,
+      "min": 2,
+      "max": 37,
+      "mean": 8
+    },
+    "replay_tokens_template_median": 44,
+    "replay_tokens_raw_median": 78,
+    "R_screenshot_typical__template_denominator": {
+      "median": 365.9,
+      "p25": 313.6,
+      "p75": 418.2,
+      "min": 193.0,
+      "max": 613.3,
+      "mean": 366.7
+    },
+    "R_screenshot_typical__raw_denominator": {
+      "median": 204.2,
+      "p25": 182.5,
+      "p75": 225.2,
+      "min": 122.4,
+      "max": 303.3,
+      "mean": 203.9
+    },
+    "R_actioncount_lowerbound__template_denominator": {
+      "median": 77.3,
+      "p25": 66.2,
+      "p75": 88.3,
+      "min": 40.8,
+      "max": 129.6,
+      "mean": 77.5
+    },
+    "R_screen_resolution_band_median_template": {
+      "conservative_1280x800": 276.4,
+      "typical_1512x982": 365.9,
+      "retina_1728x1117": 452.5
+    },
+    "R_screen_resolution_band_median_raw": {
+      "conservative_1280x800": 154.2,
+      "typical_1512x982": 204.2,
+      "retina_1728x1117": 252.6
+    },
+    "R_by_steps_template_typical": {
+      "16+": {
+        "n": 80,
+        "R_median": 446.9
+      },
+      "3-4": {
+        "n": 297,
+        "R_median": 313.6
+      },
+      "5-8": {
+        "n": 384,
+        "R_median": 367.2
+      },
+      "9-15": {
+        "n": 248,
+        "R_median": 398.1
+      }
+    }
+  },
+  "frequent_routines": {
+    "n_routines": 28,
+    "total_routine_instances": 97,
+    "R_screenshot_typical__template": {
+      "median": 289.5,
+      "p25": 259.6,
+      "p75": 313.6,
+      "min": 215.1,
+      "max": 450.3,
+      "mean": 295.1
+    },
+    "R_recurrence_weighted_mean_template": 298.0,
+    "R_screen_resolution_band_median": {
+      "conservative_1280x800": 218.7,
+      "typical_1512x982": 289.5,
+      "retina_1728x1117": 358.0
+    },
+    "R_actioncount_lowerbound_median": 61.2,
+    "replay_tokens_template_median": 29.0,
+    "steps_median": 3.0,
+    "occurrences_median": 3.0,
+    "occurrences_max": 6,
+    "R_by_steps_template_typical": {
+      "3-4": {
+        "n": 26,
+        "R_median": 284.1
+      },
+      "5-8": {
+        "n": 2,
+        "R_median": 421.1
+      }
+    },
+    "total_action_steps": 7514,
+    "n_sessions": 1009,
+    "n_frequent_ngrams": 46,
+    "n_specific_ngrams": 45,
+    "n_maximal_routines": 28,
+    "top_routines": [
+      {
+        "steps": 7,
+        "occurrences": 3,
+        "den_template": 39,
+        "sig_preview": "type:Search -> Search -> Add -> ADD TRACK -> type:Search -> Search -> Add",
+        "R_template": {
+          "conservative_1280x800": 340.1,
+          "typical_1512x982": 450.3,
+          "retina_1728x1117": 556.9
+        },
+        "R_actioncount_template": 95.1
+      },
+      {
+        "steps": 3,
+        "occurrences": 6,
+        "den_template": 23,
+        "sig_preview": "Genre -> [div] -> APPLY",
+        "R_template": {
+          "conservative_1280x800": 247.2,
+          "typical_1512x982": 327.3,
+          "retina_1728x1117": 404.7
+        },
+        "R_actioncount_template": 69.1
+      },
+      {
+        "steps": 3,
+        "occurrences": 6,
+        "den_template": 24,
+        "sig_preview": "Search -> type:Search -> Search",
+        "R_template": {
+          "conservative_1280x800": 236.9,
+          "typical_1512x982": 313.6,
+          "retina_1728x1117": 387.9
+        },
+        "R_actioncount_template": 66.2
+      },
+      {
+        "steps": 4,
+        "occurrences": 4,
+        "den_template": 28,
+        "sig_preview": "ADD TRACK -> type:Search -> Search -> Add",
+        "R_template": {
+          "conservative_1280x800": 270.7,
+          "typical_1512x982": 358.4,
+          "retina_1728x1117": 443.3
+        },
+        "R_actioncount_template": 75.7
+      },
+      {
+        "steps": 4,
+        "occurrences": 4,
+        "den_template": 28,
+        "sig_preview": "type:Search -> Search -> Add -> ADD TRACK",
+        "R_template": {
+          "conservative_1280x800": 270.7,
+          "typical_1512x982": 358.4,
+          "retina_1728x1117": 443.3
+        },
+        "R_actioncount_template": 75.7
+      },
+      {
+        "steps": 4,
+        "occurrences": 4,
+        "den_template": 30,
+        "sig_preview": "[img] -> Add to list -> Walgreens New -> Done",
+        "R_template": {
+          "conservative_1280x800": 252.7,
+          "typical_1512x982": 334.5,
+          "retina_1728x1117": 413.7
+        },
+        "R_actioncount_template": 70.7
+      },
+      {
+        "steps": 5,
+        "occurrences": 3,
+        "den_template": 32,
+        "sig_preview": "ADD TRACK -> type:Search -> Search -> Add -> ADD TRACK",
+        "R_template": {
+          "conservative_1280x800": 296.1,
+          "typical_1512x982": 392.0,
+          "retina_1728x1117": 484.8
+        },
+        "R_actioncount_template": 82.8
+      },
+      {
+        "steps": 3,
+        "occurrences": 5,
+        "den_template": 24,
+        "sig_preview": "type:Search -> Search -> Add",
+        "R_template": {
+          "conservative_1280x800": 236.9,
+          "typical_1512x982": 313.6,
+          "retina_1728x1117": 387.9
+        },
+        "R_actioncount_template": 66.2
+      },
+      {
+        "steps": 4,
+        "occurrences": 3,
+        "den_template": 33,
+        "sig_preview": "type:Search Site -> \uf002 -> type:price to -> APPLY",
+        "R_template": {
+          "conservative_1280x800": 229.7,
+          "typical_1512x982": 304.1,
+          "retina_1728x1117": 376.1
+        },
+        "R_actioncount_template": 64.2
+      },
+      {
+        "steps": 4,
+        "occurrences": 3,
+        "den_template": 29,
+        "sig_preview": "Search -> type:Search -> Search -> [a]",
+        "R_template": {
+          "conservative_1280x800": 261.4,
+          "typical_1512x982": 346.1,
+          "retina_1728x1117": 428.0
+        },
+        "R_actioncount_template": 73.1
+      },
+      {
+        "steps": 4,
+        "occurrences": 3,
+        "den_template": 39,
+        "sig_preview": "Check my bus\ue911 -> Track my bus -> Service Number -> type:Search by Service Number",
+        "R_template": {
+          "conservative_1280x800": 194.4,
+          "typical_1512x982": 257.3,
+          "retina_1728x1117": 318.3
+        },
+        "R_actioncount_template": 54.4
+      },
+      {
+        "steps": 3,
+        "occurrences": 4,
+        "den_template": 29,
+        "sig_preview": "Browse the Parks Below -> Six Flags Magic Mountain -> Go!",
+        "R_template": {
+          "conservative_1280x800": 196.0,
+          "typical_1512x982": 259.6,
+          "retina_1728x1117": 321.0
+        },
+        "R_actioncount_template": 54.8
+      }
+    ]
+  },
+  "comparison_to_private": {
+    "private_R_action_median": 343.0,
+    "private_R_url_median": 198.0,
+    "public_per_task_R_median_apples_to_apples": 365.9,
+    "public_per_task_R_median_conservative_raw_denominator": 204.2,
+    "public_per_task_R_median_actioncount_lowerbound": 77.3,
+    "verdict": "R replicates on a public corpus: per-task median R ~366x (apples-to-apples) / ~204x (conservative raw denominator), same order of magnitude as the private 343x. Not an n=1 artifact."
+  },
+  "caveats": [
+    "Mind2Web is WEB-CLICK-HEAVY (~81% CLICK, ~12% TYPE, rest SELECT/HOVER/ENTER; see dataset.action_operation_mix). A screenshot-driven desktop computer-use agent (the subject of the R claim) takes one screenshot PER action, so the screenshot_driven numerator is the correct model; but because these are short web forms, R here is best read as a LOWER BOUND vs a long desktop routine. Both numerators are reported: screenshot_driven (comparable to 343x) and action_count (strict floor with NO screenshot).",
+    "Denominator sensitivity: 'template' mirrors the private replay_script exactly (apples-to-apples); 'raw' uses the dataset's verbose verbatim action_reprs (element tag + concrete value) and gives a strictly lower, conservative R. The true R sits between them.",
+    "Per-task R treats each of the 1,009 human trajectories as one unit (this is what breaks n=1: independent tasks over dozens of websites). Frequent-routine R mines recurring cross-task n-grams with the SAME specificity rule as the private corpus; cross-task recurrence is weaker here because every Mind2Web task is a distinct goal (vs one user repeating their own workflows), so per-task R is the primary result.",
+    "Never stacked with any compression ratio or cache discount (different token populations)."
+  ]
+}
