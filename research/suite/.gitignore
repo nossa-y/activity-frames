@@ -1,0 +1,5 @@
+results/
+live/results/
+live/run_manifest.json
+*.err
+__pycache__/
