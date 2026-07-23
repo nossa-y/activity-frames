@@ -49,7 +49,7 @@ def _ts(s):
 def load_action_sessions(conn):
     """Sessions of raw click/text events with their concrete element data."""
     rows = conn.execute(
-        """SELECT timestamp, event_type, element_name, element_role, element_value,
+        """SELECT id, frame_id, timestamp, event_type, element_name, element_role, element_value,
                   element_bounds, app_name, browser_url
            FROM ui_events
            WHERE event_type IN ('click','text')
