@@ -534,6 +534,187 @@ def _gitlab(domain, parts, q):
         return PageRef(kind="repo", domain=domain, entity="/".join(parts))
     return None
 
+def _leetcode(domain, parts, q):
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "problems" and len(parts) > 1:
+        return PageRef(
+            kind="problem",
+            domain=domain,
+            entity=_slug(parts[1])
+        )
+
+    if parts[0] == "contest":
+        return PageRef(
+            kind="contest",
+            domain=domain
+        )
+
+    return None
+
+
+def _kaggle(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "datasets":
+        return PageRef(
+            kind="dataset",
+            domain=domain,
+            entity=_slug(parts[2])
+        )
+
+    if parts[0] == "competitions":
+        return PageRef(
+            kind="competition",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    if len(parts) == 1:
+        return PageRef(
+            kind="profile",
+            domain=domain,
+            entity=parts[0]
+        )
+
+    return None
+
+def _huggingface(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "models":
+        return PageRef(
+            kind="model",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    if parts[0] == "datasets":
+        return PageRef(
+            kind="dataset",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    if parts[0] == "spaces":
+        return PageRef(
+            kind="space",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    return None
+
+def _gfg(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0].startswith("find-"):
+        return PageRef(
+            kind="article",
+            domain=domain,
+            entity=_slug(parts[0])
+        )
+
+    return PageRef(
+        kind="article",
+        domain=domain,
+        entity=_slug(parts[0])
+    )
+
+def _codeforces(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "contest":
+        return PageRef(
+            kind="contest",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    if parts[0] == "problemset":
+        return PageRef(
+            kind="problemset",
+            domain=domain
+        )
+
+    if parts[0] == "profile":
+        return PageRef(
+            kind="profile",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    return None
+
+def _hackerrank(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "challenges":
+        return PageRef(
+            kind="challenge",
+            domain=domain,
+            entity=parts[1]
+        )
+
+    if parts[0] == "dashboard":
+        return PageRef(kind="dashboard", domain=domain)
+
+    return None
+
+def _colab(domain, parts, q):
+
+    if not parts:
+        return PageRef(kind="home", domain=domain)
+
+    if parts[0] == "drive":
+        return PageRef(
+            kind="notebook",
+            domain=domain,
+            entity=parts[-1]
+        )
+
+    return None
+
+def _streamlit(domain, parts, q):
+
+    return PageRef(
+        kind="app",
+        domain=domain,
+        entity=parts[0] if parts else None
+    )
+
+def _medium(domain, parts, q):
+
+    if len(parts) >= 2:
+        return PageRef(
+            kind="article",
+            domain=domain,
+            entity=_slug(parts[1])
+        )
+
+    return None
+
+def _substack(domain, parts, q):
+
+    if parts:
+        return PageRef(
+            kind="article",
+            domain=domain,
+            entity=_slug(parts[0])
+        )
+
+    return None
 
 def _localhost(domain, parts, q):
     return PageRef(kind="local_dev", domain=domain, entity="/".join(parts[:2]) or None)
@@ -581,6 +762,16 @@ _SITE_PARSERS = {
     "calendly.com": _calendly,
     "luma.com": _luma,
     "lu.ma": _luma,
+    "leetcode.com": _leetcode,
+    "kaggle.com": _kaggle,
+    "codeforces.com": _codeforces,
+    "hackerrank.com": _hackerrank,
+    "huggingface.co": _huggingface,
+    "geeksforgeeks.org": _gfg,
+    "colab.research.google.com": _colab,
+    "streamlit.io": _streamlit,
+    "medium.com": _medium,
+    "substack.com": _substack,
     "partiful.com": _partiful,
     "producthunt.com": _producthunt,
     "vercel.com": _vercel,
