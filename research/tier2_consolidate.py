@@ -25,6 +25,14 @@ DB = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__
 LIMIT = int(sys.argv[2]) if len(sys.argv) > 2 else 30
 URL = os.environ.get("LLAMA_URL", "http://localhost:8081") + "/v1/chat/completions"
 
+# LOCAL-FIRST GUARD: your routine data (element names, on-screen text) must never leave
+# the machine. Refuse to run if LLAMA_URL points anywhere but localhost, even if misconfigured.
+from urllib.parse import urlparse  # noqa: E402
+_host = (urlparse(URL).hostname or "").lower()
+if _host not in ("localhost", "127.0.0.1", "::1", "[::1]"):
+    sys.exit(f"[Tier-2] REFUSING to send routine data off-box: LLAMA_URL host is '{_host}', not "
+             f"localhost. This pass is local-first by contract - point LLAMA_URL at a local model server.")
+
 SYSTEM = (
     "You label a user's recurring computer routine so it can later be retrieved by a "
     "natural-language request and replayed. Think briefly, then output ONLY compact JSON: "
