@@ -1,6 +1,6 @@
 # Breakthrough experiments - measured results
 
-Corpus: `~/.screenpipe/db.sqlite` (working copy `/tmp/corpus_ro.sqlite`), read-only.
+Corpus: `~/.nocta/data/db.sqlite` (working copy `/tmp/corpus_ro.sqlite`), read-only.
 128,756 frames / 232,898 ui_events, 2026-05-11 .. 2026-07-22. Single user (n=1, author).
 Tokenizer: tiktoken cl100k_base (same as paper).
 

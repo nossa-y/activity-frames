@@ -90,7 +90,7 @@ list.
 
 ## Running it
 
-Requires a local capture database (default `~/.screenpipe/db.sqlite`) and the
+Requires a local capture database (default `~/.nocta/data/db.sqlite`) and the
 `claude` CLI authenticated. From this directory:
 
 ```bash

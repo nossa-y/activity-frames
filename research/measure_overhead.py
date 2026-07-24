@@ -26,7 +26,7 @@ granularities, with a parameter sensitivity band - never a single number.
 We never stack R with the 86x compression or any cache discount; they
 concern different token populations (see paper Sec. Limits).
 
-Read-only. Point AFRAMES_CORPUS at a COPY of a screenpipe DB.
+Read-only. Point AFRAMES_CORPUS at a COPY of a capture DB.
 """
 from __future__ import annotations
 

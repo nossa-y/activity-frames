@@ -8,7 +8,7 @@ data. Read-only. Two layers: 11 offline experiments you run in one command, and 
 
 ```bash
 # 1. Copy your recorder DB (NEVER point the suite at the live file)
-cp ~/.screenpipe/db.sqlite /tmp/corpus_ro.sqlite
+cp ~/.nocta/data/db.sqlite /tmp/corpus_ro.sqlite
 
 # 2. Run the offline suite
 cd ~/nocta/activity-frames/research/suite

@@ -125,7 +125,7 @@ def run():
         # (a) reproducibility of the representation itself
         af_hashes = {hashlib.sha256(subprocess.run(
             [os.path.expanduser("~/nocta/activity-frames/.venv/bin/aframes"), "day", day, "-f", "context"],
-            capture_output=True, text=True, env={**os.environ, "AFRAMES_DB": os.path.expanduser("~/.screenpipe/db.sqlite")}
+            capture_output=True, text=True, env={**os.environ, "AFRAMES_DB": os.path.expanduser("~/.nocta/data/db.sqlite")}
         ).stdout.encode()).hexdigest() for _ in range(R)}
         # If the raw rows exceed the model's context window, BOTH raw-QA and
         # LLM-summarization are infeasible — a result in itself (AF's ~2k block is not).

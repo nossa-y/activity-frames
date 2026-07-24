@@ -8,7 +8,7 @@ Also token-counts each (cl100k_base, matching the paper) and saves to reps/<day>
 """
 import subprocess, sqlite3, json, os, sys
 
-DB = os.path.expanduser("~/.screenpipe/db.sqlite")
+DB = os.path.expanduser("~/.nocta/data/db.sqlite")
 AF = os.path.expanduser("~/nocta/activity-frames/.venv/bin/aframes")
 OUT = os.path.dirname(os.path.abspath(__file__)) + "/reps"
 os.makedirs(OUT, exist_ok=True)

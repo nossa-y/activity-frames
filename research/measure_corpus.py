@@ -11,7 +11,7 @@ steps that fall inside a routine whose signature was already seen in the
 training window. That out-of-sample predicted-hit rate - not in-sample
 recurrence - is what the economics is allowed to use.
 
-Read-only. Point AFRAMES_CORPUS at a COPY of a screenpipe DB.
+Read-only. Point AFRAMES_CORPUS at a COPY of a capture DB.
 """
 from __future__ import annotations
 

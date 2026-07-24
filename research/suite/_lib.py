@@ -2,7 +2,7 @@
 
 Every test imports from here so the mining/tokenizer logic is identical to the
 committed instruments (research/measure_overhead.py). Read-only over a COPY of
-a screenpipe capture DB; point AFRAMES_CORPUS at it.
+a capture DB; point AFRAMES_CORPUS at it.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ PER_STEP_TYPICAL = SCREEN_PARAMS["typical_1512x982"] + CTX_IN_PER_STEP + REASON_
 def conn():
     if not os.path.exists(DB):
         sys.exit(f"[FATAL] capture DB not found at {DB}. Set AFRAMES_CORPUS to a COPY "
-                 f"of your screenpipe db.sqlite (never the live file).")
+                 f"of your recorder db.sqlite (never the live file).")
     c = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     c.row_factory = sqlite3.Row
     return c

@@ -17,7 +17,7 @@ from collections import defaultdict
 from urllib.parse import urlparse
 from datetime import datetime
 
-DB = os.path.expanduser("~/.screenpipe/db.sqlite")
+DB = os.path.expanduser("~/.nocta/data/db.sqlite")
 CAP_S = 60          # inter-frame gap cap for dwell (seconds)
 SESSION_GAP_S = 120 # a gap beyond this ends a single-app session
 

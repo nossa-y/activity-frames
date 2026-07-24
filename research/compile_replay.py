@@ -14,7 +14,7 @@ of the ~340x larger perceive-reason-act token stream of re-derivation.
 
 We measure B (compile cost) and the plan payload size. We do NOT execute here:
 live actuation on real authenticated apps is reserved for the operator
-(see bench_three_arm.py). Read-only over a COPY of a screenpipe DB.
+(see bench_three_arm.py). Read-only over a COPY of a capture DB.
 """
 from __future__ import annotations
 

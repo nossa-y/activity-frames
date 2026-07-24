@@ -8,7 +8,7 @@
 #   AFRAMES_CORPUS=/path/to/copy_of_db.sqlite ./run_all.sh
 #   ./run_all.sh --with-network      # also run t12 (Mind2Web replication)
 #
-# ALWAYS point AFRAMES_CORPUS at a COPY of your screenpipe db.sqlite, never the
+# ALWAYS point AFRAMES_CORPUS at a COPY of your recorder db.sqlite, never the
 # live file. Everything here opens the DB read-only.
 
 set -uo pipefail
@@ -19,7 +19,7 @@ export AFRAMES_CORPUS AFRAMES_DB="$AFRAMES_CORPUS"
 
 if [ ! -f "$AFRAMES_CORPUS" ]; then
   echo "FATAL: capture DB not found at $AFRAMES_CORPUS"
-  echo "Copy your recorder DB first, e.g.:  cp ~/.screenpipe/db.sqlite /tmp/corpus_ro.sqlite"
+  echo "Copy your recorder DB first, e.g.:  cp ~/.nocta/data/db.sqlite /tmp/corpus_ro.sqlite"
   exit 1
 fi
 
