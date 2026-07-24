@@ -54,13 +54,14 @@ def parse_snapshot(text):
     or `- textbox [ref=e40]`. Extract (role, name, ref) for every element with a ref."""
     items = []
     for line in text.splitlines():
-        m = re.search(r'-\s+([A-Za-z]+)\s+"([^"]*)"\s*\[ref=(e\d+)\]', line)
-        if m:
-            items.append({"role": m.group(1), "name": m.group(2), "ref": m.group(3)})
+        rm = re.search(r'\bref=(e\d+)\b', line)     # ref can sit anywhere in the bracket
+        if not rm:
             continue
-        m = re.search(r'-\s+([A-Za-z]+)\s*\[ref=(e\d+)\]', line)
-        if m:
-            items.append({"role": m.group(1), "name": "", "ref": m.group(2)})
+        role_m = re.search(r'-\s+([A-Za-z][\w-]*)', line)
+        name_m = re.search(r'"([^"]*)"', line)      # first quoted string = accessible name
+        items.append({"role": role_m.group(1) if role_m else "",
+                      "name": name_m.group(1) if name_m else "",
+                      "ref": rm.group(1)})
     return items
 
 
