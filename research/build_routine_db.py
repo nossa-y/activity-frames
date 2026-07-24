@@ -108,6 +108,47 @@ def ocr_text_for(cap, ef, ax_name):
     return None
 
 
+def _col(row, name):
+    """Safe column access (the source query may not select every column)."""
+    try:
+        return row[name]
+    except (IndexError, KeyError):
+        return None
+
+
+def resolve_click_element(cap, ef, x, y):
+    """Frame-level click grounding via the recorder's proven rich AX element tree.
+    When a click's ui_event carries no resolved element_name, find the element in the
+    frame whose normalized rect contains the click (x, y), preferring the SMALLEST-area
+    NAMED one (most specific). Returns (role, text) or (None, None).
+
+    Coords are normalized 0..1 - the same space as elements.*_bound (screen fractions).
+    A pixel-space click would have to be normalized by the frame first; we only trust
+    already-normalized coords here (mismatched units silently no-op rather than mis-hit)."""
+    if ef is None or x is None or y is None:
+        return None, None
+    try:
+        x, y = float(x), float(y)
+    except (TypeError, ValueError):
+        return None, None
+    if not (0.0 <= x <= 1.0 and 0.0 <= y <= 1.0):
+        return None, None
+    rows = cap.execute(
+        "SELECT role, text, left_bound l, top_bound t, width_bound w, height_bound h "
+        "FROM elements WHERE frame_id=? AND left_bound IS NOT NULL "
+        "AND text IS NOT NULL AND text!=''", (ef,)).fetchall()
+    best, best_area = None, 2.0
+    for r in rows:
+        l, t, w, h = r["l"], r["t"], r["w"], r["h"]
+        if None in (l, t, w, h):
+            continue
+        if w * h > 0.5:                 # skip full-window/background containers - not a click target
+            continue
+        if l <= x <= l + w and t <= y <= t + h and w * h < best_area:
+            best, best_area = r, w * h
+    return (best["role"], best["text"]) if best else (None, None)
+
+
 def op_of(row):
     return "type" if row["event_type"] == "text" else "click"
 
@@ -134,7 +175,7 @@ def build():
     out = sqlite3.connect(OUT)
     out.executescript(open(SCHEMA).read())
 
-    n_routines = n_steps = n_evidence = n_ocr = 0
+    n_routines = n_steps = n_evidence = n_ocr = n_click_grounded = 0
     for rid, (sig, occ) in enumerate(routines, start=1):
         occ_rows = find_occurrence(sessions, sig)     # representative concrete rows
         if occ_rows is None or len(occ_rows) != len(sig):
@@ -167,6 +208,15 @@ def build():
                 frame_id, ef = row["frame_id"], ef_of(cap, row["frame_id"])
             else:
                 frame_id, ef, _ = resolve_frame(cap, row["timestamp"], row["app_name"])
+            # Frame-level click grounding: if the click has no resolved element name,
+            # recover it from the frame's rich AX tree by point-in-rect (the recorder's
+            # proven 99.6%-named tree). Keeps routines grounded even while the click path
+            # of ui_events.element_name lags.
+            if not (ax_name and str(ax_name).strip()):
+                fr, fn = resolve_click_element(cap, ef, _col(row, "x"), _col(row, "y"))
+                if fn:
+                    ax_role, ax_name = (ax_role or fr), fn
+                    n_click_grounded += 1
             ocr = ocr_text_for(cap, ef, ax_name)
             if ocr:
                 n_ocr += 1
@@ -189,6 +239,7 @@ def build():
         "capture_db": DB, "routine_db": OUT,
         "routines": n_routines, "steps": n_steps, "evidence_rows": n_evidence,
         "steps_with_ocr_fingerprint": n_ocr,
+        "steps_click_grounded_via_tree": n_click_grounded,
         "tier2_columns_written": "none (name/description/confidence/is_slot/slot_name left NULL)",
     }, indent=2))
 
