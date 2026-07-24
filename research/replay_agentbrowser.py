@@ -1,17 +1,19 @@
-"""Deterministic routine executor over `agent-browser` (the nocta-execute substrate).
+"""Deterministic routine executor - REPRODUCES the nocta-execute browser stack and
+adds the compiled 0-token fast-path. Does NOT modify the internal nocta-execute skill
+(that stays untouched, per Nossa); this is a standalone reproduction of its agent-browser
+approach (daemon-reuse, real profile, human pacing, safety) with the one novel piece on
+top: deterministic role+name grounding of a compiled plan, so replay costs ~0 LLM tokens.
 
-This is the compiled fast-path: given a routine plan, it drives the browser with
-ZERO LLM by parsing `agent-browser snapshot` (the accessibility tree with refs) and
-clicking the matched ref. The grounding ladder is ported from the (now deprecated)
-Nocta Replay extension - same tier 1 (role+name) / tier 2 (visible text / OCR
-fingerprint) / deopt logic, but over agent-browser instead of a content script, so
-it reuses the mature daemon (stealth, cookies, real profile) and is ONE mechanism
-with nocta-execute (which is the LLM interpreter / deopt layer).
+The split: this file is the compiled fast-path (grounding ladder tier 1 role+name / tier 2
+OCR fingerprint, 0 tokens); on a miss with --deopt it hands off to a local LLM step (the
+nocta-execute-style interpreter). The daemon-management + pacing reproduce the hard-won
+lessons in actions/browser-real-chrome-profile.md + docs/lessons/browser.md (launch bound
+--profile ... --headed ONCE and REUSE; never cycle close/open into the headless fallback).
 
-Safety gate blocks destructive verbs (send/post/pay) unless --allow-destructive.
-Reuses the running daemon (never close/open mid-run - see actions/browser-real-chrome-profile.md).
+STATUS: parser verified on a real live snapshot (100%); a full live run_plan (real clicks)
+is the remaining validation - do it once the browser is free.
 
-  python3 replay_agentbrowser.py plan.json [--dry-run] [--allow-destructive]
+  python3 replay_agentbrowser.py plan.json [--profile "Profile 3"] [--dry-run] [--allow-destructive] [--deopt]
   python3 replay_agentbrowser.py --selftest      # offline: validate parse+locate, no browser
 
 plan.json = [{"op":"click|type","target":"Compose message","role":"button",
@@ -21,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -88,7 +91,7 @@ def locate(items, target, role="", ocr_text=""):
     return None, 0
 
 
-# ---- agent-browser driver ---------------------------------------------------
+# ---- agent-browser driver (reproduces nocta-execute's operational lessons) ---
 def ab(*args, timeout=30):
     return subprocess.run(["agent-browser", *args], capture_output=True, text=True, timeout=timeout)
 
@@ -97,8 +100,34 @@ def snapshot():
     return ab("snapshot", timeout=45).stdout
 
 
-def pace(a, b):
-    time.sleep(0)  # foreground sleep is environment-dependent; keep hook for human pacing
+def pace(lo=1.0, hi=3.0):
+    """Human pacing between actions (anti-bot). Real jittered sleep - this is a
+    standalone script the operator runs, so time.sleep is fine here."""
+    time.sleep(random.uniform(lo, hi))
+
+
+def ensure_daemon(profile="Profile 3", url="about:blank"):
+    """Reproduce the daemon-reuse gotcha (docs/lessons/browser.md): a headed real-Chrome
+    daemon must be launched ONCE bound with --profile ... --headed and then REUSED; if it
+    died and you `open` again it silently respawns a HEADLESS throwaway. So: if a headed
+    real-Chrome agent-browser is already up, reuse it; else launch bound. Verify it is NOT
+    the headless fallback before trusting any snapshot. Never pkill blindly (another agent
+    may be driving Chrome)."""
+    pid = subprocess.run(["pgrep", "-f", "agent-browser-profile|Google Chrome.*remote-debugging"],
+                         capture_output=True, text=True).stdout.split()
+    if pid:
+        cmd = subprocess.run(["ps", "-p", pid[0], "-o", "command="],
+                             capture_output=True, text=True).stdout
+        if "--headless" not in cmd and "chrome-headless-shell" not in cmd and "playwright" not in cmd:
+            return "reused-headed"
+        return "WARNING-headless-fallback-detected (relaunch bound manually to avoid clobbering another agent's Chrome)"
+    ab("--profile", profile, "--headed", "--args", "--disable-blink-features=AutomationControlled",
+       "open", url, timeout=60)
+    up = subprocess.run(["pgrep", "-f", "agent-browser-profile"], capture_output=True, text=True).stdout.split()
+    if up:
+        cmd = subprocess.run(["ps", "-p", up[0], "-o", "command="], capture_output=True, text=True).stdout
+        return "launched-headed" if "--headless" not in cmd else "FAILED-launched-headless"
+    return "FAILED-no-daemon"
 
 
 def deopt_resolve(items, target, role):
