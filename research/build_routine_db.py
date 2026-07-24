@@ -70,11 +70,11 @@ def resolve_frame(cap, ts_str, app_name):
         ("timestamp<=? AND timestamp>=?", (ts_str, lo)),
     ):
         r = cap.execute(
-            f"SELECT id, COALESCE(elements_ref_frame_id, id) AS ef FROM frames "
+            f"SELECT id, COALESCE(elements_ref_frame_id, id) AS ef, browser_url FROM frames "
             f"WHERE {cond} ORDER BY timestamp DESC LIMIT 1", params).fetchone()
         if r:
-            return r["id"], r["ef"]
-    return None, None
+            return r["id"], r["ef"], r["browser_url"]
+    return None, None, None
 
 
 def ocr_text_for(cap, ef, ax_name):
@@ -134,7 +134,13 @@ def build():
             continue
         times = occurrence_spans(sessions, sig)
         app = occ_rows[0]["app_name"]
+        # site: ui_events.browser_url is NULL in the old capture; resolve the URL from
+        # the first step's temporal frame (frames.browser_url). New recorder sets it on
+        # the event directly, so prefer that when present.
         site = _url_t(occ_rows[0]["browser_url"]) if occ_rows[0]["browser_url"] else None
+        if not site:
+            _, _, burl0 = resolve_frame(cap, occ_rows[0]["timestamp"], occ_rows[0]["app_name"])
+            site = _url_t(burl0) if burl0 else None
 
         out.execute(
             # NOTE: name/description/confidence intentionally omitted -> stay NULL (Tier-2)
@@ -148,7 +154,7 @@ def build():
             ax_role = row["element_role"]
             ax_name = row["element_name"]
             bbox = row["element_bounds"]
-            frame_id, ef = resolve_frame(cap, row["timestamp"], row["app_name"])  # temporal, FK is NULL
+            frame_id, ef, _ = resolve_frame(cap, row["timestamp"], row["app_name"])  # temporal (old FK NULL)
             ocr = ocr_text_for(cap, ef, ax_name)
             if ocr:
                 n_ocr += 1
