@@ -46,7 +46,7 @@
   "generated_unix": 1784693980,
   "status": "ok",
   "method": {
-    "R_definition": "num(memoryless screenshot-driven re-derivation) / den(deterministic replay script)",
+    "R_definition": "num(memoryless screenshot-driven re-derivation) / den(parametric routine replay script)",
     "tokenizer": "cl100k_base",
     "numerator_model": {
       "screenshot_driven": "k*(screenshot_tok + 350 ctx + 180 reason)  [IMPORTED from measure_overhead.py, IDENTICAL to private measurement]",

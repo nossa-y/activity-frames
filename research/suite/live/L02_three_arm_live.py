@@ -70,7 +70,7 @@ def run_arm_B_real(routine):
 
 def run_arm_C_real(routine):
     raise NotImplementedError(
-        "TODO(real): execute routine['plan'] with a deterministic executor; before each action "
+        "TODO(real): execute routine['plan'] with a parametric routine replay executor; before each action "
         "check its guard against the live screen (accessibility API / screenshot match); on "
         "mismatch, hand off to run_arm_A_real (deopt) and mark deopt=True. Return usage + success.")
 

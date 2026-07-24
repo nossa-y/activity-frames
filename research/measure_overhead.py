@@ -1,7 +1,7 @@
 """Routine Overhead Ratio (R) - the flagship instrument.
 
 R = (tokens a screenshot-driven computer-use agent spends RE-DERIVING a
-recurring routine, with no memory) / (tokens of the DETERMINISTIC replay
+recurring routine, with no memory) / (tokens of the parametric routine replay
 script that activity-frames compiles that routine into).
 
 Both ends are operationally defined:
@@ -240,7 +240,7 @@ def mine_routines(conn, granularity="action"):
 
 
 def replay_script(routine: Routine, conn) -> str:
-    """Deterministic replay artifact: the minimal instruction a replay engine
+    """Parametric routine replay artifact: the minimal instruction a replay engine
     needs. This is the DENOMINATOR - the routine's compiled information
     content. One line per resolved action."""
     lines = [f"# routine ({routine.granularity}), {routine.occurrences}x, {routine.steps} steps"]
@@ -339,7 +339,7 @@ if __name__ == "__main__":
         "CTX_IN_PER_STEP": CTX_IN_PER_STEP, "REASON_OUT_PER_STEP": REASON_OUT_PER_STEP,
         "screen_params_tok": SCREEN_PARAMS,
         "numerator": "MODELED (k*(screenshot+ctx+reason), Anthropic w*h/750 image tokens)",
-        "denominator": "MEASURED (tiktoken of deterministic replay script)",
+        "denominator": "MEASURED (tiktoken of parametric routine replay script)",
     }, "results": {}}
     for g in ("action", "url"):
         recs = measure(g)

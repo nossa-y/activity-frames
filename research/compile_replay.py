@@ -1,4 +1,4 @@
-"""Deterministic replay-plan compiler (LLM-free) - the mechanism that turns a
+"""Parametric routine replay compiler (LLM-free) - the mechanism that turns a
 measured recurring routine into an executable skill.
 
 For each top recurring routine it locates a concrete captured occurrence and
@@ -108,7 +108,7 @@ def find_occurrence(sessions, sig):
 
 
 def compile_plan(sig, occurrence):
-    """Emit a deterministic replay plan with per-step guards from captured data."""
+    """Emit a parametric routine replay plan with per-step guards from captured data."""
     plan = []
     for step, row in zip(sig, occurrence):
         if step.startswith("type:"):

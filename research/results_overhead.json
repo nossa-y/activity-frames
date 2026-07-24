@@ -14,7 +14,7 @@
       "retina_1728x1117": 2573
     },
     "numerator": "MODELED (k*(screenshot+ctx+reason), Anthropic w*h/750 image tokens)",
-    "denominator": "MEASURED (tiktoken of deterministic replay script)"
+    "denominator": "MEASURED (tiktoken of parametric routine replay script)"
   },
   "results": {
     "action": {

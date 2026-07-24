@@ -7,7 +7,7 @@ Tokenizer: tiktoken cl100k_base (same as paper).
 ## 1. Routine Overhead Ratio R  [FLAGSHIP]  (research/measure_overhead.py)
 
 R = tokens a memoryless screenshot-driven agent spends RE-DERIVING a recurring
-routine  /  tokens of the deterministic replay script that routine compiles to.
+routine  /  tokens of the parametric routine replay script that routine compiles to.
 Numerator MODELED (Anthropic image tokens = w*h/750; per step = screenshot + 350 ctx + 180 reason).
 Denominator MEASURED (tiktoken of replay script). Routines = frequent (>=3x) action n-grams
 with >=2 named targets (specificity rule pre-declared to defeat the granularity trap).

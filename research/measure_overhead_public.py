@@ -8,7 +8,7 @@ tasks crowdsourced across 137 websites / 31 domains) - so the result stops
 being n=1.
 
 R = (tokens a memoryless screenshot-driven computer-use agent spends
-RE-DERIVING a routine) / (tokens of the DETERMINISTIC replay script that
+RE-DERIVING a routine) / (tokens of the parametric routine replay script that
 routine compiles to). Both ends are defined EXACTLY as in measure_overhead.py;
 this script *imports* the per-step cost model, the screen-resolution sweep and
 the tiktoken cl100k_base tokenizer from that file so the numerator is provably
@@ -399,7 +399,7 @@ def summarize_routines(recs, coverage):
 # ---------------------------------------------------------------------------
 def build_method_block(provenance):
     return {
-        "R_definition": "num(memoryless screenshot-driven re-derivation) / den(deterministic replay script)",
+        "R_definition": "num(memoryless screenshot-driven re-derivation) / den(parametric routine replay script)",
         "tokenizer": TOKENIZER,
         "numerator_model": {
             "screenshot_driven": "k*(screenshot_tok + %d ctx + %d reason)  [IMPORTED from measure_overhead.py, IDENTICAL to private measurement]" % (CTX_IN_PER_STEP, REASON_OUT_PER_STEP),

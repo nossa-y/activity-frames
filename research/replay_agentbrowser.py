@@ -1,4 +1,13 @@
-"""Deterministic routine executor - REPRODUCES the nocta-execute browser stack and
+"""Parametric routine replay executor.
+
+PARAMETRIC ROUTINE REPLAY: re-run the STRUCTURE of a routine the user has done before
+(open composer -> click recipient -> type message -> send), filling its variable SLOTS
+with new values from the current request (recipient Lisa->Luca, message text -> new text).
+We never replay the identical past action; we reuse the "way" and drop in new parameters.
+"Deterministic" here refers to how each step is GROUNDED - by accessibility role+name at
+~0 LLM tokens, reproducibly - not to the content, which is always new.
+
+REPRODUCES the nocta-execute browser stack and
 adds the compiled 0-token fast-path. Does NOT modify the internal nocta-execute skill
 (that stays untouched, per Nossa); this is a standalone reproduction of its agent-browser
 approach (daemon-reuse, real profile, human pacing, safety) with the one novel piece on

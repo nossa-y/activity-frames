@@ -90,7 +90,7 @@ def main():
                 "2. arm A: run a computer-use agent (Claude computer use) on each, capture the "
                 "real Anthropic usage JSON (input/output/cache_creation/cache_read tokens)",
                 "3. arm B: prepend the compiled plan (results_replay.json) to the agent context, re-run",
-                "4. arm C: execute the plan with a deterministic executor honoring each step's "
+                "4. arm C: execute the plan with a parametric routine replay executor honoring each step's "
                 "guard; on mismatch hand back to arm A; log deopt rate",
                 "5. replace model() dollars with billed dollars; report success rate + $/success + CIs",
             ],

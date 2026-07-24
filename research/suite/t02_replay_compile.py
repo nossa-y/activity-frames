@@ -1,4 +1,4 @@
-"""T02 - deterministic replay-plan compiler + R_inject (operational headline).
+"""T02 - parametric routine replay compiler + R_inject (operational headline).
 
 VALIDATES: routines compile to guarded replay plans for ~0 tokens and ~1 ms, and
 the operational R_inject (inject the compiled plan) is ~60x. This is the number
