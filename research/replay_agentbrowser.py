@@ -33,9 +33,21 @@ from urllib.parse import urlparse
 
 LLAMA_URL = os.environ.get("LLAMA_URL", "http://localhost:8081") + "/v1/chat/completions"
 
-DESTRUCTIVE = re.compile(
-    r"\b(send|post|publish|share|connect|delete|remove|pay|buy|submit|confirm|transfer|"
-    r"archive|discard|checkout|purchase|withdraw|tweet|invite|follow)\b", re.I)
+# Fire only when a destructive verb is the IMPERATIVE HEAD of a control's accessible name
+# (a short action button: "Post", "Send", "Send invitation", "Connect") - NOT when the verb
+# merely appears inside a safe phrase ("Start a post", "Text editor for creating content").
+# Anchored-at-start avoids the false positive that would otherwise block the composer opener.
+# KNOWN EDGE (ISSUES): a confirm control phrased "Yes, delete" (verb not at head) slips past;
+# acceptable because plans come from recorded non-destructive routines + discard is done out-of-band.
+_DESTRUCTIVE_VERBS = ("send", "post", "publish", "share", "connect", "delete", "remove",
+                      "pay", "buy", "submit", "confirm", "transfer", "archive", "discard",
+                      "checkout", "purchase", "withdraw", "tweet", "invite", "follow", "apply")
+DESTRUCTIVE = re.compile(r"^(?:" + "|".join(_DESTRUCTIVE_VERBS) + r")\b", re.I)
+
+
+def is_destructive(*names):
+    """True if any name's imperative head is a destructive verb (see DESTRUCTIVE)."""
+    return any(DESTRUCTIVE.match(norm(n)) for n in names if n)
 
 _ROLE_ALIASES = {"axbutton": "button", "axtextfield": "textbox", "axstatictext": "text",
                  "axlink": "link", "textbox": "textbox", "button": "button", "link": "link"}
@@ -154,6 +166,8 @@ def deopt_resolve(items, target, role):
 def run_plan(plan, dry_run=False, allow_destructive=False, deopt=False):
     steps_out = []
     for i, step in enumerate(plan):
+        if i and not dry_run:
+            pace(1.5, 3.0)          # let the previous action's DOM settle + human pacing
         target = step.get("target") or (step.get("guard") or {}).get("expect_element") or ""
         role = step.get("role") or (step.get("guard") or {}).get("expect_role") or ""
         snap = parse_snapshot(snapshot())
