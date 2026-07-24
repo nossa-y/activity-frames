@@ -77,6 +77,13 @@ def resolve_frame(cap, ts_str, app_name):
     return None, None, None
 
 
+def ef_of(cap, frame_id):
+    """Resolve a frame_id to the frame that actually holds its elements (dedup)."""
+    r = cap.execute("SELECT COALESCE(elements_ref_frame_id, id) AS ef FROM frames WHERE id=?",
+                    (frame_id,)).fetchone()
+    return r["ef"] if r else frame_id
+
+
 def ocr_text_for(cap, ef, ax_name):
     """The OCR text on the resolved frame that corresponds to the acted element.
     Returns a real elements(source='ocr').text value or None - never fabricated."""
@@ -154,7 +161,12 @@ def build():
             ax_role = row["element_role"]
             ax_name = row["element_name"]
             bbox = row["element_bounds"]
-            frame_id, ef, _ = resolve_frame(cap, row["timestamp"], row["app_name"])  # temporal (old FK NULL)
+            # New recorder sets ui_events.frame_id as an EXACT FK; use it. Old capture
+            # leaves it NULL -> fall back to the 15s temporal resolution.
+            if row["frame_id"] is not None:
+                frame_id, ef = row["frame_id"], ef_of(cap, row["frame_id"])
+            else:
+                frame_id, ef, _ = resolve_frame(cap, row["timestamp"], row["app_name"])
             ocr = ocr_text_for(cap, ef, ax_name)
             if ocr:
                 n_ocr += 1

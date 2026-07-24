@@ -20,10 +20,15 @@ plan.json = [{"op":"click|type","target":"Compose message","role":"button",
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
 import time
+import urllib.request
+from urllib.parse import urlparse
+
+LLAMA_URL = os.environ.get("LLAMA_URL", "http://localhost:8081") + "/v1/chat/completions"
 
 DESTRUCTIVE = re.compile(
     r"\b(send|post|publish|share|connect|delete|remove|pay|buy|submit|confirm|transfer|"
@@ -95,17 +100,43 @@ def pace(a, b):
     time.sleep(0)  # foreground sleep is environment-dependent; keep hook for human pacing
 
 
-def run_plan(plan, dry_run=False, allow_destructive=False):
+def deopt_resolve(items, target, role):
+    """DEOPT: tier 1/2 missed. Hand the current snapshot + the step goal to a LOCAL
+    LLM (nocta-execute-style step) to pick the best ref, then resume the deterministic
+    plan. Returns a ref or None. Local-first: refuses non-localhost."""
+    if (urlparse(LLAMA_URL).hostname or "").lower() not in ("localhost", "127.0.0.1", "::1", "[::1]"):
+        return None
+    cat = "\n".join(f'[{it["ref"]}] {it["role"]} "{it["name"]}"' for it in items if it["name"])[:4000]
+    prompt = (f'Goal: click/type the {role or "element"} for "{target}".\nElements on screen:\n{cat}\n'
+              f'Reply with ONLY the single best matching ref id (like e12), or NONE.')
+    body = json.dumps({"messages": [{"role": "user", "content": prompt}],
+                       "temperature": 0, "max_tokens": 400}).encode()
+    try:
+        req = urllib.request.Request(LLAMA_URL, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=90) as r:
+            content = json.load(r)["choices"][0]["message"].get("content") or ""
+        m = re.findall(r"e\d+", content)
+        return m[-1] if m else None      # the answer ref (after any reasoning)
+    except Exception:
+        return None
+
+
+def run_plan(plan, dry_run=False, allow_destructive=False, deopt=False):
     steps_out = []
     for i, step in enumerate(plan):
         target = step.get("target") or (step.get("guard") or {}).get("expect_element") or ""
         role = step.get("role") or (step.get("guard") or {}).get("expect_role") or ""
         snap = parse_snapshot(snapshot())
         it, tier = locate(snap, target, role, step.get("ocr_text", ""))
+        if not it and deopt:                 # tier 1/2 missed -> LLM deopt step
+            dref = deopt_resolve(snap, target, role)
+            if dref:
+                it, tier = {"ref": dref, "name": target, "role": role}, -1  # -1 = deopt-recovered
         rec = {"i": i, "op": step.get("op"), "target": target, "tier": tier,
-               "ref": it["ref"] if it else None, "acted": False, "deopt": False, "blocked": False}
+               "ref": it["ref"] if it else None, "acted": False,
+               "deopt": False, "deopt_recovered": tier == -1, "blocked": False}
         if not it:
-            rec["deopt"] = True  # -> hand to nocta-execute LLM step
+            rec["deopt"] = True  # unresolved even after deopt
             steps_out.append(rec)
             continue
         nm = it["name"] or target
@@ -126,7 +157,8 @@ def run_plan(plan, dry_run=False, allow_destructive=False):
         "total": len(steps_out),
         "tier1": sum(s["tier"] == 1 for s in steps_out),
         "tier2": sum(s["tier"] == 2 for s in steps_out),
-        "deopt": sum(s["deopt"] for s in steps_out),
+        "deopt_recovered": sum(bool(s.get("deopt_recovered")) for s in steps_out),
+        "deopt_unresolved": sum(s["deopt"] for s in steps_out),
         "blocked": sum(s["blocked"] for s in steps_out),
         "acted": sum(s["acted"] for s in steps_out),
     }
@@ -176,4 +208,5 @@ if __name__ == "__main__":
         selftest()
     plan = json.load(open(sys.argv[1]))
     print(json.dumps(run_plan(plan, dry_run="--dry-run" in sys.argv,
-                              allow_destructive="--allow-destructive" in sys.argv), indent=2))
+                              allow_destructive="--allow-destructive" in sys.argv,
+                              deopt="--deopt" in sys.argv), indent=2))
