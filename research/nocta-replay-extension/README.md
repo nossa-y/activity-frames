@@ -1,4 +1,16 @@
-# Nocta Replay (extension) - the deterministic web executor
+# Nocta Replay (extension) - DEPRECATED
+
+> **DEPRECATED (2026-07-23, Nossa's call).** The executor is NOT an extension. It is a
+> deterministic script over `agent-browser` (the nocta-execute substrate): `../replay_agentbrowser.py`.
+> That reuses the mature agent-browser daemon (stealth, cookies, real profile) and is ONE
+> mechanism with nocta-execute (nocta-execute = LLM interpreter/deopt; replay_agentbrowser = compiled
+> fast-path). This extension proved the grounding-ladder LOGIC works (headless, real page, zero
+> vision, blocked Send); that logic was ported into replay_agentbrowser.py. Kept only as a reference
+> for the grounding ladder, and as a possible future shippable consumer product. Do not build on it.
+
+---
+
+# (reference) Nocta Replay extension - the grounding-ladder proof
 
 This is the real thing that was a `NotImplementedError` stub: it takes a compiled
 routine plan and replays it on a page by locating each target through the DOM's

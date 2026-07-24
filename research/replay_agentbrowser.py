@@ -1,0 +1,179 @@
+"""Deterministic routine executor over `agent-browser` (the nocta-execute substrate).
+
+This is the compiled fast-path: given a routine plan, it drives the browser with
+ZERO LLM by parsing `agent-browser snapshot` (the accessibility tree with refs) and
+clicking the matched ref. The grounding ladder is ported from the (now deprecated)
+Nocta Replay extension - same tier 1 (role+name) / tier 2 (visible text / OCR
+fingerprint) / deopt logic, but over agent-browser instead of a content script, so
+it reuses the mature daemon (stealth, cookies, real profile) and is ONE mechanism
+with nocta-execute (which is the LLM interpreter / deopt layer).
+
+Safety gate blocks destructive verbs (send/post/pay) unless --allow-destructive.
+Reuses the running daemon (never close/open mid-run - see actions/browser-real-chrome-profile.md).
+
+  python3 replay_agentbrowser.py plan.json [--dry-run] [--allow-destructive]
+  python3 replay_agentbrowser.py --selftest      # offline: validate parse+locate, no browser
+
+plan.json = [{"op":"click|type","target":"Compose message","role":"button",
+              "ocr_text":"Compose","value":"hi","guard":{"expect_element":"Compose message"}}, ...]
+"""
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+import time
+
+DESTRUCTIVE = re.compile(
+    r"\b(send|post|publish|share|connect|delete|remove|pay|buy|submit|confirm|transfer|"
+    r"archive|discard|checkout|purchase|withdraw|tweet|invite|follow)\b", re.I)
+
+_ROLE_ALIASES = {"axbutton": "button", "axtextfield": "textbox", "axstatictext": "text",
+                 "axlink": "link", "textbox": "textbox", "button": "button", "link": "link"}
+
+
+def norm(s):
+    return re.sub(r"\s+", " ", (s or "").replace("‎", "")).strip().lower()
+
+
+def role_match(a, b):
+    if not b:
+        return True
+    a, b = norm(a), norm(b)
+    return a == b or _ROLE_ALIASES.get(a, a) == _ROLE_ALIASES.get(b, b)
+
+
+def parse_snapshot(text):
+    """agent-browser snapshot lines look like: `- button "Compose message" [ref=e36]`
+    or `- textbox [ref=e40]`. Extract (role, name, ref) for every element with a ref."""
+    items = []
+    for line in text.splitlines():
+        m = re.search(r'-\s+([A-Za-z]+)\s+"([^"]*)"\s*\[ref=(e\d+)\]', line)
+        if m:
+            items.append({"role": m.group(1), "name": m.group(2), "ref": m.group(3)})
+            continue
+        m = re.search(r'-\s+([A-Za-z]+)\s*\[ref=(e\d+)\]', line)
+        if m:
+            items.append({"role": m.group(1), "name": "", "ref": m.group(2)})
+    return items
+
+
+def locate(items, target, role="", ocr_text=""):
+    """Grounding ladder. Returns (item, tier) or (None, 0)."""
+    t = norm(target)
+    # tier 1: accessibility (role+name), then name-exact, then name-contains
+    if t:
+        for it in items:
+            if norm(it["name"]) == t and role_match(it["role"], role):
+                return it, 1
+        for it in items:
+            if norm(it["name"]) == t:
+                return it, 1
+        cand = [it for it in items if t in norm(it["name"])]
+        if cand:
+            return min(cand, key=lambda it: len(it["name"])), 1
+    # tier 2: the recorded OCR/visible-text fingerprint
+    o = norm(ocr_text)
+    if o:
+        for it in items:
+            if norm(it["name"]) == o or (o and o in norm(it["name"])):
+                return it, 2
+    return None, 0
+
+
+# ---- agent-browser driver ---------------------------------------------------
+def ab(*args, timeout=30):
+    return subprocess.run(["agent-browser", *args], capture_output=True, text=True, timeout=timeout)
+
+
+def snapshot():
+    return ab("snapshot", timeout=45).stdout
+
+
+def pace(a, b):
+    time.sleep(0)  # foreground sleep is environment-dependent; keep hook for human pacing
+
+
+def run_plan(plan, dry_run=False, allow_destructive=False):
+    steps_out = []
+    for i, step in enumerate(plan):
+        target = step.get("target") or (step.get("guard") or {}).get("expect_element") or ""
+        role = step.get("role") or (step.get("guard") or {}).get("expect_role") or ""
+        snap = parse_snapshot(snapshot())
+        it, tier = locate(snap, target, role, step.get("ocr_text", ""))
+        rec = {"i": i, "op": step.get("op"), "target": target, "tier": tier,
+               "ref": it["ref"] if it else None, "acted": False, "deopt": False, "blocked": False}
+        if not it:
+            rec["deopt"] = True  # -> hand to nocta-execute LLM step
+            steps_out.append(rec)
+            continue
+        nm = it["name"] or target
+        if (DESTRUCTIVE.search(nm) or DESTRUCTIVE.search(target)) and not allow_destructive:
+            rec["blocked"] = True
+            rec["reason"] = f"destructive verb blocked: {nm}"
+            steps_out.append(rec)
+            continue
+        if not dry_run:
+            if step.get("op") == "type":
+                ab("click", it["ref"]); pace(1, 2)
+                ab("type", it["ref"], step.get("value", ""))
+            else:
+                ab("click", it["ref"])
+            rec["acted"] = True
+        steps_out.append(rec)
+    summary = {
+        "total": len(steps_out),
+        "tier1": sum(s["tier"] == 1 for s in steps_out),
+        "tier2": sum(s["tier"] == 2 for s in steps_out),
+        "deopt": sum(s["deopt"] for s in steps_out),
+        "blocked": sum(s["blocked"] for s in steps_out),
+        "acted": sum(s["acted"] for s in steps_out),
+    }
+    return {"mode": "dry_run" if dry_run else "executed", "summary": summary, "steps": steps_out}
+
+
+# ---- offline self-test (no browser) -----------------------------------------
+SAMPLE_SNAPSHOT = """
+- generic [ref=e1]
+  - button "Compose message" [ref=e12]
+  - textbox "Write a message" [ref=e14]
+  - link "Drafts" [ref=e16]
+  - button "Save draft now" [ref=e18]
+  - button "Send" [ref=e20]
+"""
+SELFTEST_PLAN = [
+    {"op": "click", "target": "Compose message", "role": "button"},   # tier1 (name exact)
+    {"op": "type", "target": "Write a message", "role": "textbox", "value": "hi"},  # tier1
+    {"op": "click", "target": "Keep draft", "role": "button", "ocr_text": "Save draft now"},  # tier2: name absent, OCR matches
+    {"op": "click", "target": "Attach file", "role": "button"},        # deopt (absent)
+    {"op": "click", "target": "Send", "role": "button"},               # blocked (destructive)
+]
+
+
+def selftest():
+    items = parse_snapshot(SAMPLE_SNAPSHOT)
+    assert len(items) == 6, f"parsed {len(items)} refs, expected 6"
+    outs = []
+    for step in SELFTEST_PLAN:
+        it, tier = locate(items, step["target"], step.get("role", ""), step.get("ocr_text", ""))
+        nm = it["name"] if it else ""
+        blocked = bool(it) and bool(DESTRUCTIVE.search(nm or step["target"]))
+        outs.append((step["target"], tier, it["ref"] if it else None, "BLOCKED" if blocked else ""))
+    exp = [("Compose message", 1, "e12"), ("Write a message", 1, "e14"),
+           ("Keep draft", 2, "e18"), ("Attach file", 0, None), ("Send", 1, "e20")]
+    ok = True
+    for (tg, tier, ref, note), (etg, etier, eref) in zip(outs, exp):
+        good = tier == etier and ref == eref
+        ok = ok and good and (note == "BLOCKED" if tg == "Send" else True)
+        print(f"  {'PASS' if good else 'FAIL'}  {tg}: tier{tier} ref={ref} {note}")
+    print("SELFTEST", "PASS" if ok else "FAIL", "- grounding ladder ports cleanly onto agent-browser snapshots")
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        selftest()
+    plan = json.load(open(sys.argv[1]))
+    print(json.dumps(run_plan(plan, dry_run="--dry-run" in sys.argv,
+                              allow_destructive="--allow-destructive" in sys.argv), indent=2))
