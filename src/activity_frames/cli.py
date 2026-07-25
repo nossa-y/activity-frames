@@ -28,6 +28,8 @@ def _add_common(p: argparse.ArgumentParser) -> None:
                    help="include typed text snippets (off by default)")
     p.add_argument("--layout", default=None,
                    help="keyboard layout decode map (e.g. azerty)")
+    p.add_argument("--debug", action="store_true",
+                   help="include sessionization debug info (why segments split/merge)")
 
 
 def _emit(doc, fmt: str, include_text: bool) -> str:
@@ -167,7 +169,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {e}", file=sys.stderr)
         return 2
 
-    kw = dict(min_minutes=args.min_minutes, include_text=args.include_text)
+    kw = dict(min_minutes=args.min_minutes, include_text=args.include_text,
+              debug=args.debug)
 
     try:
         if args.cmd == "today":

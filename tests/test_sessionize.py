@@ -1,5 +1,7 @@
 from activity_frames.sessionize import app_ledger, coverage, segments
 
+from activity_frames import build_frames
+
 
 def test_segments_basic_shape(fixture_db, day_window):
     segs = segments(fixture_db, *day_window)
@@ -54,3 +56,45 @@ def test_empty_window(fixture_db):
     assert segments(fixture_db, "2020-01-01T00:00:00", "2020-01-02T00:00:00") == []
     cov = coverage(fixture_db, "2020-01-01T00:00:00", "2020-01-02T00:00:00")
     assert cov.frame_count == 0
+
+
+# ---- break_reason (Issue #7) ----
+
+def test_break_reason_first_segment_is_start(fixture_db, day_window):
+    segs = segments(fixture_db, *day_window)
+    assert len(segs) > 0
+    assert segs[0].break_reason == "start"
+
+
+def test_break_reason_context_switch(fixture_db, day_window):
+    segs = segments(fixture_db, *day_window)
+    # The LinkedIn -> Cursor transition is a context_switch.
+    cursor = next(s for s in segs if s.app == "Cursor")
+    assert cursor.break_reason == "context_switch"
+
+
+def test_break_reason_session_gap(fixture_db, day_window):
+    segs = segments(fixture_db, *day_window)
+    # The GitHub segment follows a 60-min away gap.
+    github = next(s for s in segs if s.domain == "github.com")
+    assert github.break_reason == "session_gap"
+
+
+def test_break_reason_not_in_output_by_default(fixture_db, day_window):
+    doc = build_frames(fixture_db, *day_window)
+    d = doc.to_dict()
+    assert "_debug" not in d
+
+
+def test_break_reason_in_output_with_debug(fixture_db, day_window):
+    doc = build_frames(fixture_db, *day_window, debug=True)
+    d = doc.to_dict()
+    assert "_debug" in d
+    sessionization = d["_debug"]["sessionization"]
+    assert isinstance(sessionization, dict)
+    assert len(sessionization) == len(doc.frames)
+    # Every reason must be one of the known values.
+    valid = {"start", "context_switch", "session_gap"}
+    for fid, reason in sessionization.items():
+        assert fid.startswith("f-")
+        assert reason in valid

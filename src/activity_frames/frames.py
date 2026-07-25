@@ -125,6 +125,7 @@ class ActivityDocument:
     blind_spots: list[str]
     omitted_below_min: int = 0      # frames dropped by the min_minutes floor
     min_minutes: float = 0.0
+    debug: dict | None = None       # optional sessionization debug info
 
     def to_dict(self, include_input_text: bool = False) -> dict:
         d = {
@@ -141,6 +142,8 @@ class ActivityDocument:
                 "below_min_minutes": self.omitted_below_min,
                 "min_minutes": self.min_minutes,
             }
+        if self.debug:
+            d["_debug"] = self.debug
         return d
 
 
@@ -190,6 +193,7 @@ def build_frames(
     dwell_cap: float = DWELL_CAP,
     session_gap: float = SESSION_GAP,
     merge_flicker: float = MERGE_FLICKER,
+    debug: bool = False,
 ) -> ActivityDocument:
     """Compile a UTC window of recorder data into an ActivityDocument."""
     segs = compute_segments(
@@ -284,6 +288,7 @@ def build_frames(
     frames_out: list[ActivityFrame] = []
     omitted_below_min = 0
     idx = 0
+    debug_reasons: dict[str, str] = {}
     for seg in segs:
         duration_min = round(seg.active_seconds / 60, 1)
         if duration_min < min_minutes:
@@ -292,6 +297,9 @@ def build_frames(
         idx += 1
         inp = seg_stats.get(id(seg), InputStats())
         fids = seg.frame_ids
+        frame_id_str = f"f-{idx:04d}"
+        if debug and seg.break_reason:
+            debug_reasons[frame_id_str] = seg.break_reason
         frames_out.append(
             ActivityFrame(
                 index=idx,
@@ -340,6 +348,8 @@ def build_frames(
         omitted_below_min=omitted_below_min,
         min_minutes=min_minutes,
     )
+    if debug and debug_reasons:
+        doc.debug = {"sessionization": debug_reasons}
     return doc
 
 
