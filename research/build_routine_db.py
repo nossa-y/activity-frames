@@ -60,10 +60,10 @@ def resolve_frame(cap, ts_str, app_name):
     event). Events and frames are separate streams correlated by TIMESTAMP. So we
     resolve the frame shown at the moment of the action: the nearest frame at or
     just before the event (same app when possible), within a 15s window. Returns
-    (frame_id, elements_frame) where elements_frame resolves elements_ref_frame_id."""
+    (frame_id, elements_frame, browser_url); callers unpack 3, so every path returns 3."""
     t = _parse_ts(ts_str)
     if t is None:
-        return None, None
+        return None, None, None
     lo = (t - timedelta(seconds=15)).isoformat(sep=" ")
     for cond, params in (
         ("timestamp<=? AND timestamp>=? AND app_name=?", (ts_str, lo, app_name)),
@@ -135,7 +135,7 @@ def resolve_click_element(cap, ef, x, y):
         return None, None
     rows = cap.execute(
         "SELECT role, text, left_bound l, top_bound t, width_bound w, height_bound h "
-        "FROM elements WHERE frame_id=? AND left_bound IS NOT NULL "
+        "FROM elements WHERE frame_id=? AND source='accessibility' AND left_bound IS NOT NULL "
         "AND text IS NOT NULL AND text!=''", (ef,)).fetchall()
     best, best_area = None, 2.0
     for r in rows:

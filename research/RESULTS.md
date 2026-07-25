@@ -46,8 +46,11 @@ Fleet token saving = h_specific × (1 - 1/R) ≈ 0.09 × 0.997 ≈ **9% of all a
 or **~99.7% of the tokens spent on the repeated fraction**. (Never stacked with 86× or cache.)
 
 All experiments below are complete; results in the numbered sections. Public-dataset
-replication (breaks n=1): research/measure_overhead_public.py -> Mind2Web 366x brackets
-private action 343x.
+replication: research/measure_overhead_public.py -> Mind2Web (1,009 tasks) gives R 366x,
+bracketing the private action-granularity 343x. NOTE the scope: Mind2Web externally
+validates only the R *ratio methodology* on independent multi-user data. The recurrence
+rate h, the live 0-token replay, and the dollar figures remain single-user (n=1) / modeled -
+Mind2Web has no longitudinal per-user history to measure h from.
 
 ## 3. Replay-plan compiler (research/compile_replay.py) - the mechanism
 20 recurring routines compiled into deterministic guarded action plans, LLM-free.

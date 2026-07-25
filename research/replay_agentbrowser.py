@@ -22,8 +22,10 @@ lessons in actions/browser-real-chrome-profile.md + docs/lessons/browser.md (lau
 STATUS: parser verified on a real live snapshot (100%); a full live run_plan (real clicks)
 is the remaining validation - do it once the browser is free.
 
-  python3 replay_agentbrowser.py plan.json [--profile "Profile 3"] [--dry-run] [--allow-destructive] [--deopt]
-  python3 replay_agentbrowser.py --selftest      # offline: validate parse+locate, no browser
+  python3 replay_agentbrowser.py plan.json                 # SAFE default: dry-run, never clicks
+  python3 replay_agentbrowser.py plan.json --execute       # opt in to real browser actions
+      [--profile "Profile 3"] [--allow-destructive] [--deopt]
+  python3 replay_agentbrowser.py --selftest      # offline: validate parse+locate+guard, no browser
 
 plan.json = [{"op":"click|type","target":"Compose message","role":"button",
               "ocr_text":"Compose","value":"hi","guard":{"expect_element":"Compose message"}}, ...]
@@ -193,7 +195,10 @@ def run_plan(plan, dry_run=False, allow_destructive=False, deopt=False):
             steps_out.append(rec)
             continue
         nm = it["name"] or target
-        if (DESTRUCTIVE.search(nm) or DESTRUCTIVE.search(target)) and not allow_destructive:
+        # is_destructive() normalizes first (strips ‎ bidi marks / whitespace, lowercases)
+        # then matches the imperative head - a raw DESTRUCTIVE.search() is defeated by a leading
+        # ‎ (which the corpus is full of), so it must go through the normalized helper.
+        if is_destructive(nm, target) and not allow_destructive:
             rec["blocked"] = True
             rec["reason"] = f"destructive verb blocked: {nm}"
             steps_out.append(rec)
@@ -243,7 +248,7 @@ def selftest():
     for step in SELFTEST_PLAN:
         it, tier = locate(items, step["target"], step.get("role", ""), step.get("ocr_text", ""))
         nm = it["name"] if it else ""
-        blocked = bool(it) and bool(DESTRUCTIVE.search(nm or step["target"]))
+        blocked = bool(it) and is_destructive(nm or step["target"])
         outs.append((step["target"], tier, it["ref"] if it else None, "BLOCKED" if blocked else ""))
     exp = [("Compose message", 1, "e12"), ("Write a message", 1, "e14"),
            ("Keep draft", 2, "e18"), ("Attach file", 0, None), ("Send", 1, "e20")]
@@ -252,7 +257,15 @@ def selftest():
         good = tier == etier and ref == eref
         ok = ok and good and (note == "BLOCKED" if tg == "Send" else True)
         print(f"  {'PASS' if good else 'FAIL'}  {tg}: tier{tier} ref={ref} {note}")
-    print("SELFTEST", "PASS" if ok else "FAIL", "- grounding ladder ports cleanly onto agent-browser snapshots")
+    # guard must survive obfuscation the corpus actually contains (leading ‎ bidi mark, spaces)
+    bypass = [is_destructive("‎Send"), is_destructive("  send"), is_destructive("POST"),
+              is_destructive("Send invitation")]
+    safe = [not is_destructive("Start a post"), not is_destructive("Compose message"),
+            not is_destructive("Search")]
+    gok = all(bypass) and all(safe)
+    ok = ok and gok
+    print(f"  {'PASS' if gok else 'FAIL'}  destructive-guard: blocks ‎/space/case-obfuscated verbs, allows safe names")
+    print("SELFTEST", "PASS" if ok else "FAIL", "- grounding ladder + normalized safety guard")
     sys.exit(0 if ok else 1)
 
 
@@ -260,6 +273,8 @@ if __name__ == "__main__":
     if "--selftest" in sys.argv:
         selftest()
     plan = json.load(open(sys.argv[1]))
-    print(json.dumps(run_plan(plan, dry_run="--dry-run" in sys.argv,
+    # SAFE BY DEFAULT: dry-run unless --execute is passed. This tool drives a REAL browser,
+    # so live clicks must be opted into explicitly (a bare run never acts).
+    print(json.dumps(run_plan(plan, dry_run="--execute" not in sys.argv,
                               allow_destructive="--allow-destructive" in sys.argv,
                               deopt="--deopt" in sys.argv), indent=2))

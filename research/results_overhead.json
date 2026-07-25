@@ -319,7 +319,7 @@
             "retina_1728x1117": 176.8
           },
           "R_typical": 142.9,
-          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/* -> drive.google.com/dr"
         },
         {
           "granularity": "url",
@@ -332,7 +332,7 @@
             "retina_1728x1117": 225.2
           },
           "R_typical": 182.1,
-          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+          "sig_preview": "www.canva.com/design/* -> drive.google.com/drive/folders/* -> www.canva.com/design/* -> drive.go"
         },
         {
           "granularity": "url",
@@ -345,7 +345,7 @@
             "retina_1728x1117": 177.8
           },
           "R_typical": 143.7,
-          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/* -> drive.google.com/dr"
         },
         {
           "granularity": "url",
@@ -358,7 +358,7 @@
             "retina_1728x1117": 230.6
           },
           "R_typical": 186.5,
-          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+          "sig_preview": "www.canva.com/design/* -> drive.google.com/drive/folders/* -> www.canva.com/design/* -> drive.go"
         },
         {
           "granularity": "url",
@@ -384,7 +384,7 @@
             "retina_1728x1117": 148.8
           },
           "R_typical": 120.3,
-          "sig_preview": "www.notion.so/to-do-23281003e48f803ea3d8d6be656d82e6/* -> calendar.google.com/calendar/u/* -> www.notion.so/to-do-232810"
+          "sig_preview": "www.notion.so/* -> calendar.google.com/calendar/u/* -> www.notion.so/to-do-232810"
         },
         {
           "granularity": "url",
@@ -397,7 +397,7 @@
             "retina_1728x1117": 173.8
           },
           "R_typical": 140.5,
-          "sig_preview": "calendar.google.com/calendar/u/* -> www.notion.so/to-do-23281003e48f803ea3d8d6be656d82e6/* -> calendar.google.com/calend"
+          "sig_preview": "calendar.google.com/calendar/u/* -> www.notion.so/* -> calendar.google.com/calend"
         },
         {
           "granularity": "url",
@@ -410,7 +410,7 @@
             "retina_1728x1117": 175.2
           },
           "R_typical": 141.6,
-          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/video-script-3653829fddd280589ba9cb77fcf77f10/* -> drive.google.com/dr"
+          "sig_preview": "drive.google.com/drive/folders/* -> www.notion.so/* -> drive.google.com/dr"
         },
         {
           "granularity": "url",
@@ -423,7 +423,7 @@
             "retina_1728x1117": 217.2
           },
           "R_typical": 175.6,
-          "sig_preview": "www.canva.com/design/DAHKPY5BbrU/* -> drive.google.com/drive/folders/* -> www.canva.com/design/DAHKPY5BbrU/* -> drive.go"
+          "sig_preview": "www.canva.com/design/* -> drive.google.com/drive/folders/* -> www.canva.com/design/* -> drive.go"
         }
       ]
     }

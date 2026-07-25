@@ -13,3 +13,6 @@ build/
 # generated routine DBs contain personal activity data - never commit
 research/*.db
 research/routines.db
+
+# never commit node_modules (leaks local paths via symlinks)
+node_modules/
