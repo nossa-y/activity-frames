@@ -298,3 +298,26 @@ def test_crunchbase_funding_and_discover():
     search = parse_url("https://www.crunchbase.com/discover/organization.companies")
     assert search.kind == "search"
     assert search.entity == "organization.companies"
+
+
+def test_atlassian_jira_issue():
+    issue = parse_url("https://acme.atlassian.net/browse/ENG-123")
+    assert (issue.kind, issue.entity, issue.domain) == (
+        "issue", "ENG-123", "acme.atlassian.net"
+    )
+
+
+def test_atlassian_confluence_page():
+    titled = parse_url(
+        "https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/API+Runbook"
+    )
+    assert (titled.kind, titled.entity) == ("doc", "API Runbook")
+    untitled = parse_url(
+        "https://acme.atlassian.net/wiki/spaces/ENG/pages/12345"
+    )
+    assert (untitled.kind, untitled.entity) == ("doc", "12345")
+
+
+def test_atlassian_unknown_path_falls_through():
+    unknown = parse_url("https://acme.atlassian.net/plugins/servlet/ac")
+    assert (unknown.kind, unknown.entity) == ("page", "plugins")
