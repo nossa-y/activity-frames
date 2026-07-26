@@ -284,6 +284,7 @@ def test_gitlab_single_segment_falls_through():
     r = parse_url("https://gitlab.com/some-user")
     assert (r.kind, r.domain, r.entity) == ("page", "gitlab.com", "some-user")
 
+
 def test_leetcode():
     problem = parse_url("https://leetcode.com/problems/two-sum/")
     assert (problem.kind, problem.entity) == ("problem", "two sum")
@@ -298,6 +299,161 @@ def test_leetcode():
         "leetcode.com",
         "problems",
     )
+
+
+def test_kaggle():
+    dataset = parse_url("https://www.kaggle.com/datasets/uciml/iris")
+    assert (dataset.kind, dataset.entity) == ("dataset", "iris")
+
+    competition = parse_url("https://www.kaggle.com/competitions/titanic")
+    assert (competition.kind, competition.entity) == (
+        "competition",
+        "titanic",
+    )
+
+    profile = parse_url("https://www.kaggle.com/rajmehra03")
+    assert (profile.kind, profile.entity) == (
+        "profile",
+        "rajmehra03",
+    )
+
+    # Bare sections should not crash.
+    bare_dataset = parse_url("https://www.kaggle.com/datasets")
+    assert (bare_dataset.kind, bare_dataset.entity) == (
+        "page",
+        "datasets",
+    )
+
+    bare_comp = parse_url("https://www.kaggle.com/competitions")
+    assert (bare_comp.kind, bare_comp.entity) == (
+        "page",
+        "competitions",
+    )
+
+
+def test_huggingface():
+    model = parse_url("https://huggingface.co/models/google/gemma-2b")
+    assert (model.kind, model.entity) == (
+        "model",
+        "google",
+    )
+
+    dataset = parse_url("https://huggingface.co/datasets/imdb")
+    assert (dataset.kind, dataset.entity) == (
+        "dataset",
+        "imdb",
+    )
+
+    space = parse_url("https://huggingface.co/spaces/gradio/hello_world")
+    assert (space.kind, space.entity) == (
+        "space",
+        "gradio",
+    )
+
+    # Bare sections should fall through.
+    assert parse_url("https://huggingface.co/models").kind == "page"
+    assert parse_url("https://huggingface.co/datasets").kind == "page"
+    assert parse_url("https://huggingface.co/spaces").kind == "page"
+
+
+def test_geeksforgeeks():
+    article = parse_url(
+        "https://www.geeksforgeeks.org/find-first-set-bit/"
+    )
+    assert (article.kind, article.entity) == (
+        "article",
+        "find first set bit",
+    )
+
+    article2 = parse_url(
+        "https://www.geeksforgeeks.org/dynamic-programming/"
+    )
+    assert (article2.kind, article2.entity) == (
+        "article",
+        "dynamic programming",
+    )
+
+
+def test_codeforces():
+    contest = parse_url("https://codeforces.com/contest/2100")
+    assert (contest.kind, contest.entity) == (
+        "contest",
+        "2100",
+    )
+
+    profile = parse_url("https://codeforces.com/profile/tourist")
+    assert (profile.kind, profile.entity) == (
+        "profile",
+        "tourist",
+    )
+
+    assert parse_url("https://codeforces.com/problemset").kind == "problemset"
+
+    # Previously crashed.
+    bare_contest = parse_url("https://codeforces.com/contest")
+    assert (bare_contest.kind, bare_contest.entity) == (
+        "page",
+        "contest",
+    )
+
+    bare_profile = parse_url("https://codeforces.com/profile")
+    assert (bare_profile.kind, bare_profile.entity) == (
+        "page",
+        "profile",
+    )
+
+
+def test_hackerrank():
+    challenge = parse_url(
+        "https://www.hackerrank.com/challenges/plus-minus"
+    )
+    assert (challenge.kind, challenge.entity) == (
+        "challenge",
+        "plus-minus",
+    )
+
+    assert parse_url(
+        "https://www.hackerrank.com/dashboard"
+    ).kind == "dashboard"
+
+    # Previously crashed.
+    bare = parse_url("https://www.hackerrank.com/challenges")
+    assert (bare.kind, bare.entity) == (
+        "page",
+        "challenges",
+    )
+
+
+def test_colab():
+    notebook = parse_url(
+        "https://colab.research.google.com/drive/1AbCdEfGhIjKlMn"
+    )
+    assert notebook.kind == "notebook"
+    assert notebook.entity == "1AbCdEfGhIjKlMn"
+
+
+def test_streamlit():
+    app = parse_url("https://streamlit.io/gallery")
+    assert (app.kind, app.entity) == (
+        "app",
+        "gallery",
+    )
+
+
+def test_medium():
+    article = parse_url(
+        "https://medium.com/towards-data-science/understanding-transformers-abc123"
+    )
+    assert article.kind == "article"
+
+
+def test_substack():
+    article = parse_url("https://openai.substack.com/p/introducing-gpt")
+    assert (article.kind, article.entity) == (
+        "article",
+        "p",
+    )
+
 
 def test_crunchbase_company_and_profile():
     org = parse_url("https://www.crunchbase.com/organization/getcleed")
