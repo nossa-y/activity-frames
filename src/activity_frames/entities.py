@@ -562,7 +562,18 @@ def _crunchbase(domain, parts, q):
     return None
 
 
+def _atlassian(domain, parts, q):
+    if len(parts) >= 2 and parts[0] == "browse":
+        return PageRef(kind="issue", domain=domain, entity=parts[1])
+    if (len(parts) >= 5 and parts[0] == "wiki" and parts[1] == "spaces"
+            and parts[3] == "pages"):
+        entity = _slug(parts[5].replace("+", " ")) if len(parts) > 5 else parts[4]
+        return PageRef(kind="doc", domain=domain, entity=entity)
+    return None
+
+
 _SITE_PARSERS = {
+    "atlassian.net": _atlassian,
     "crunchbase.com": _crunchbase,
     "linkedin.com": _linkedin,
     "github.com": _github,
