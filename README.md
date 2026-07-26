@@ -12,11 +12,11 @@
 
 > **[Download the desktop app](https://usenocta.app)** - Nocta uses activity-frames to watch how you work and brief you daily on what needs your attention. 100% local.
 
-**Episodic memory for AI agents.**
+**Episodic memory for AI agents - and the routines they can replay.**
 
-Your agent can read your code, search the web, and call APIs - but it has no idea what you have been doing for the last 8 hours. It starts every conversation blind.
+Your agent can read your code, search the web, and call APIs - but it has no idea what you've been doing all day, so it starts every conversation blind. And when it runs a task for you, it works it out from scratch every time, even one you've done a hundred times.
 
-activity-frames gives your agent eyes. It records your screen locally, compiles what it sees into structured **activity frames** (bounded episodes of what you actually did), and serves them to any agent over MCP. No cloud, no LLM in the pipeline, no guessing.
+activity-frames fixes both. It records your screen locally and compiles what it sees into structured **activity frames**: bounded, deterministic episodes of tasks you actually did. The recurring ones compile into **routines a computer-use agent can use** instead of working them out again. So it does your repetitive computer tasks **cheaper** (enriching a compiled routine costs almost no tokens) and **more reliable** (the same steps, grounded the same way every time, instead of guessing from a screenshot).
 
 ```bash
 pip install activity-frames
@@ -64,10 +64,22 @@ Agent memory today means conversation memory: what you told the model. Episodic 
 
 activity-frames enforces a two-tier contract ([SPEC.md](SPEC.md)):
 
-- **Tier 1, measured (this package):** everything is derivable by deterministic code from capture data. Sessions, durations, typed page entities, input volume, coverage gaps. Same input, same output, every time. There are no intent labels - code cannot know that 2 profile views + a people search was "prospecting". That is your agent's job; it is an LLM.
+- **Tier 1, measured (this package):** everything is derivable by deterministic code from capture data - sessions, durations, typed page entities, input volume, coverage gaps. No interpretation, no intent labels. Same input, same output, every time.
 - **Tier 2, inferred (optional extension):** tools that add interpretation must namespace it, tag confidence (`high | medium | speculative`), and link evidence. Facts and guesses can never silently mix.
 
 Every frame carries evidence pointers back to raw capture rows. Every document declares its blind spots. What the system did not see, it says it did not see.
+
+## Beyond memory: routines agents can replay
+
+Episodic memory tells an agent what you did. The bigger result is what it lets an agent *do*.
+
+Computer-use agents re-derive every task from scratch - screenshot, reason, act, repeat - even for a routine they've run a hundred times. That re-derivation is where the token cost goes, and it's waste: the routine hasn't changed.
+
+Because activity-frames compiles recurring activity deterministically, a routine you've done before becomes a **replayable script** - steps an agent executes directly, grounded by the accessibility tree, with no model in the loop. The agent only picks *which* routine and fills in what's new (message a different person, the same way); the replay itself costs essentially zero tokens.
+
+We measured how much agents overpay to re-derive routines they've already performed - the **Routine Overhead Ratio** - on weeks of real activity, replicated it on a public web-task dataset, and built a deterministic executor that replays a compiled routine in a real browser. Instrument, measurements, and executor: [`research/`](research/).
+
+Passively-captured activity becomes **deterministic action** - and the cheapest computer task is the one an agent never reasons through twice.
 
 ## Use it from an agent (MCP)
 
@@ -105,7 +117,7 @@ print(log.context(hours=2))          # paste-ready context block
  ------------------      ---------------------------     -----------------
  screen snapshots   -->  sessionize (dwell, gaps,   -->  MCP tools /
  accessibility tree      flicker merge)                  context blocks /
- input events            entity typing (20+ sites)       JSON, YAML, md
+ input events            entity typing (25+ sites)       JSON, YAML, md
  (local SQLite)          enrichment, patterns
 ```
 
@@ -127,6 +139,6 @@ aframes mcp                      # MCP stdio server
 
 ## Status
 
-v0.1. Developed and tested on macOS (Apple Silicon); Intel macOS and Linux x64 engine builds exist but are less exercised - reports welcome. Entity parsers cover LinkedIn, GitHub, GitLab, Google (Search/Docs/Gmail/Maps/Meet/Calendar), YouTube, X, Instagram, Reddit, Luma, Partiful, Product Hunt, Vercel, Supabase, Stripe, Discord, Slack, Notion, Figma, Linear, Stack Overflow, Calendly, ChatGPT/Claude, localhost; unknown sites fall back to a generic page reference - always total, never lossy. Issues and parser PRs welcome.
+v0.2. Developed and tested on macOS (Apple Silicon); Intel macOS and Linux x64 engine builds exist but are less exercised - reports welcome. Entity parsers cover LinkedIn, GitHub, GitLab, Google (Search/Docs/Gmail/Maps/Meet/Calendar), YouTube, X, Instagram, Reddit, Luma, Partiful, Product Hunt, Vercel, Supabase, Stripe, Discord, Slack, Notion, Figma, Linear, Stack Overflow, Calendly, Crunchbase, Atlassian (Jira/Confluence), ChatGPT/Claude, localhost; unknown sites fall back to a generic page reference - always total, never lossy. Issues and parser PRs welcome.
 
 Built by [Nossa](https://github.com/nossa-y), maker of [Nocta](https://usenocta.app). MIT.
