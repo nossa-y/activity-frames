@@ -286,6 +286,20 @@ def test_gitlab_single_segment_falls_through():
     r = parse_url("https://gitlab.com/some-user")
     assert (r.kind, r.domain, r.entity) == ("page", "gitlab.com", "some-user")
 
+def test_leetcode():
+    problem = parse_url("https://leetcode.com/problems/two-sum/")
+    assert (problem.kind, problem.entity) == ("problem", "two sum")
+
+    contest = parse_url("https://leetcode.com/contest/")
+    assert contest.kind == "contest"
+
+    # Bare problems section should fall through instead of raising.
+    bare = parse_url("https://leetcode.com/problems")
+    assert (bare.kind, bare.domain, bare.entity) == (
+        "page",
+        "leetcode.com",
+        "problems",
+    )
 
 def test_crunchbase_company_and_profile():
     org = parse_url("https://www.crunchbase.com/organization/acme")
