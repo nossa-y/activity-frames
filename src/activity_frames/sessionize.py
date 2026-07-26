@@ -76,6 +76,7 @@ class Segment:
     active_seconds: float = 0.0
     frames: list[RawFrame] = field(default_factory=list)
     interruptions: list[Interruption] = field(default_factory=list)
+    break_reason: str = ""        # why this segment started (debug)
 
     @property
     def key(self) -> tuple[str, str | None]:
@@ -173,6 +174,7 @@ def _segment_stream(
     # Pass 1: raw segmentation on context-key change or session gap.
     raw: list[Segment] = []
     cur: Segment | None = None
+    prev_key: tuple[str, str | None] | None = None
     for i, f in enumerate(frames):
         gap_to_next = (
             frames[i + 1].epoch - f.epoch if i + 1 < len(frames) else None
@@ -181,9 +183,17 @@ def _segment_stream(
 
         key = (f.app, f.domain)
         if cur is None or key != cur.key:
+            # Determine why this segment starts.
+            if cur is None and prev_key is None:
+                reason = "start"
+            elif cur is None and prev_key is not None:
+                reason = "session_gap"
+            else:
+                reason = "context_switch"
             cur = Segment(
                 app=f.app, domain=f.domain,
                 start_epoch=f.epoch, end_epoch=f.epoch,
+                break_reason=reason,
             )
             raw.append(cur)
         cur.frames.append(f)
@@ -191,6 +201,7 @@ def _segment_stream(
         if gap_to_next is not None and gap_to_next <= session_gap:
             cur.active_seconds += dwell
         if gap_to_next is not None and gap_to_next > session_gap:
+            prev_key = key
             cur = None  # session break: next frame starts a new segment
 
     # Pass 2: flicker merge. A -> B -> A where B is brief becomes one A
