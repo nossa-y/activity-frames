@@ -560,24 +560,28 @@ def _kaggle(domain, parts, q):
         return PageRef(kind="home", domain=domain)
 
     if parts[0] == "datasets":
-        return PageRef(
-            kind="dataset",
-            domain=domain,
-            entity=_slug(parts[2])
-        )
+        if len(parts) > 2:
+            return PageRef(
+                kind="dataset",
+                domain=domain,
+                entity=_slug(parts[2]),
+            )
+        return None
 
     if parts[0] == "competitions":
-        return PageRef(
-            kind="competition",
-            domain=domain,
-            entity=parts[1]
-        )
-
+        if len(parts) > 1:
+            return PageRef(
+                kind="competition",
+                domain=domain,
+                entity=parts[1],
+            )
+        return None
+    
     if len(parts) == 1:
         return PageRef(
             kind="profile",
             domain=domain,
-            entity=parts[0]
+            entity=parts[0],
         )
 
     return None
@@ -587,21 +591,21 @@ def _huggingface(domain, parts, q):
     if not parts:
         return PageRef(kind="home", domain=domain)
 
-    if parts[0] == "models":
+    if parts[0] == "models" and len(parts)>1:
         return PageRef(
             kind="model",
             domain=domain,
             entity=parts[1]
         )
 
-    if parts[0] == "datasets":
+    if parts[0] == "datasets" and len(parts)>1:
         return PageRef(
             kind="dataset",
             domain=domain,
             entity=parts[1]
         )
 
-    if parts[0] == "spaces":
+    if parts[0] == "spaces" and len(parts)>1:
         return PageRef(
             kind="space",
             domain=domain,
@@ -633,7 +637,7 @@ def _codeforces(domain, parts, q):
     if not parts:
         return PageRef(kind="home", domain=domain)
 
-    if parts[0] == "contest":
+    if parts[0] == "contest" and len(parts)>1:
         return PageRef(
             kind="contest",
             domain=domain,
@@ -646,7 +650,7 @@ def _codeforces(domain, parts, q):
             domain=domain
         )
 
-    if parts[0] == "profile":
+    if parts[0] == "profile" and len(parts)>1:
         return PageRef(
             kind="profile",
             domain=domain,
@@ -660,7 +664,7 @@ def _hackerrank(domain, parts, q):
     if not parts:
         return PageRef(kind="home", domain=domain)
 
-    if parts[0] == "challenges":
+    if parts[0] == "challenges" and len(parts)>1:
         return PageRef(
             kind="challenge",
             domain=domain,
