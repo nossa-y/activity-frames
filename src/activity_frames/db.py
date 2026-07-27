@@ -22,7 +22,14 @@ class RecorderDBNotFound(FileNotFoundError):
 
 
 def find_default_db() -> str:
-    """Locate the capture DB, honoring $AFRAMES_DB."""
+    """Locate the capture DB, honoring $AFRAMES_DB.
+
+    When several candidate files exist (e.g. an older recorder layout's DB
+    next to the current one), pick the most recently MODIFIED: the live
+    capture DB is written every few seconds, so mtime identifies it reliably,
+    whereas first-match-wins could select a stale file and make recent-window
+    queries look empty.
+    """
     for var in ("AFRAMES_DB",):
         env = os.environ.get(var)
         if env:
@@ -30,10 +37,9 @@ def find_default_db() -> str:
             if p.exists():
                 return str(p)
             raise RecorderDBNotFound(f"${var} points to a missing file: {env}")
-    for cand in DEFAULT_DB_CANDIDATES:
-        p = Path(cand).expanduser()
-        if p.exists():
-            return str(p)
+    existing = [p for cand in DEFAULT_DB_CANDIDATES if (p := Path(cand).expanduser()).exists()]
+    if existing:
+        return str(max(existing, key=lambda p: p.stat().st_mtime))
     raise RecorderDBNotFound(
         "No capture database found. Start recording with: aframes record "
         "(or point $AFRAMES_DB at an existing capture database)."
