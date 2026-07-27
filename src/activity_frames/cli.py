@@ -92,6 +92,18 @@ def main(argv: list[str] | None = None) -> int:
     p_mcp.add_argument("--db", help="path to the capture SQLite database")
     p_mcp.add_argument("--layout", default=None)
 
+    p_steps = sub.add_parser(
+        "steps", help="one frame's ordered click-by-click script (replay view)")
+    p_steps.add_argument("--frame", required=True,
+                         help='frame id from `aframes activity`, e.g. f-0002')
+    p_steps.add_argument("--hours", type=float, default=3.0,
+                         help="window to index frames over (default 3)")
+    p_steps.add_argument("--day", help="local day YYYY-MM-DD (overrides --hours)")
+    p_steps.add_argument("--no-text", action="store_true",
+                         help="serve typed/pasted text as lengths only")
+    p_steps.add_argument("--max-steps", type=int, default=250)
+    p_steps.add_argument("--db", help="path to the capture SQLite database")
+
     p_rec = sub.add_parser("record", help="start/stop the built-in capture engine")
     p_rec.add_argument("--stop", action="store_true", help="stop capturing")
     p_rec.add_argument("--status", action="store_true", help="show capture status")
@@ -124,6 +136,15 @@ def main(argv: list[str] | None = None) -> int:
         from .mcp_server import MCPServer
 
         MCPServer(args.db, args.layout).serve()
+        return 0
+
+    if args.cmd == "steps":
+        from .mcp_server import MCPServer
+
+        server = MCPServer(args.db, None)
+        print(server.get_steps(frame=args.frame, day=args.day, hours=args.hours,
+                               include_text=not args.no_text,
+                               max_steps=args.max_steps))
         return 0
 
     if args.cmd == "comms":

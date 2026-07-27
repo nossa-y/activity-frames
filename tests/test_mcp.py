@@ -56,8 +56,8 @@ def test_initialize_and_tools_list(fixture_db):
     assert s.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
     tools = _rpc(s, "tools/list")["result"]["tools"]
     names = {t["name"] for t in tools}
-    assert names == {"get_context", "get_activity", "get_day_summary",
-                 "get_patterns", "get_communications"}
+    assert names == {"get_context", "get_activity", "get_steps",
+                 "get_day_summary", "get_patterns", "get_communications"}
 
 
 def test_tool_call_get_activity(fixture_db):
