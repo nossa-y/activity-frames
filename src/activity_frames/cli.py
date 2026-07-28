@@ -207,8 +207,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{a.minutes:8.1f} min  {a.app}  "
                       f"[{a.sessions} sessions, longest {a.longest_session_min}m]{wins}")
         elif args.cmd == "patterns":
-            for p in log.patterns(args.days, include_text=args.include_text):
-                print(f"[{p.kind}] {p.label}")
+            from datetime import datetime, timedelta
+
+            since = (datetime.now() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+            today = datetime.now().strftime("%Y-%m-%d")
+            patterns = log.patterns(args.days, include_text=args.include_text)
+            print(f"Patterns over last {args.days} day(s) ({since} to {today}):")
+            for p in patterns:
+                print(f"  [{p.kind}] {p.label}")
+            if not patterns:
+                print("  (no patterns detected)")
     except ValueError as e:
         print(f"error: {e} (dates are YYYY-MM-DD)", file=sys.stderr)
         return 2
