@@ -91,10 +91,15 @@ class Segment:
 
 
 def _has_column(db: Database, table: str, column: str) -> bool:
-    try:
-        return any(r[1] == column for r in db.rows(f"PRAGMA table_info({table})"))
-    except Exception:
-        return False
+    key = (table, column)
+    if key not in db._col_cache:
+        try:
+            db._col_cache[key] = any(
+                r[1] == column for r in db.rows(f"PRAGMA table_info({table})")
+            )
+        except Exception:
+            db._col_cache[key] = False
+    return db._col_cache[key]
 
 
 def load_frames(db: Database, start_utc: str, end_utc: str) -> list[RawFrame]:

@@ -59,6 +59,7 @@ class Database:
         uri = p.resolve().as_uri() + "?mode=ro"
         self._conn = sqlite3.connect(uri, uri=True, timeout=3.0)
         self._conn.execute("PRAGMA query_only = ON")
+        self._col_cache: dict[tuple[str, str], bool] = {}  # (table, col) -> exists
 
     def rows(self, sql: str, params: Iterable[Any] = ()) -> list[tuple]:
         cur = self._conn.execute(sql, tuple(params))
