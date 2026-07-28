@@ -66,18 +66,24 @@ def context_block(doc: ActivityDocument, *, max_frames: int = 40) -> str:
     Chronological, one line per frame, entities inline. Roughly 15-25
     tokens per frame; a full working day fits in well under 1.5k tokens.
     """
+    # Filter the dataclass list BEFORE serialising so we only call to_dict()
+    # on the frames we will actually emit. Coverage/window come from the full doc.
+    all_frames = doc.frames
+    dropped = 0
+    if len(all_frames) > max_frames:
+        kept_objs = sorted(all_frames, key=lambda f: -f.duration_min)[:max_frames]
+        kept_ids = {id(f) for f in kept_objs}
+        dropped = len(all_frames) - len(kept_objs)
+        # Preserve chronological order for the output.
+        kept_frames_serialised = [
+            f.to_dict(False) for f in all_frames if id(f) in kept_ids
+        ]
+    else:
+        kept_frames_serialised = [f.to_dict(False) for f in all_frames]
+
     d = doc.to_dict(False)
     cov = d["coverage"]
-    frames = d["frames"]
-
-    # If over budget, keep the longest frames but preserve chronology.
-    if len(frames) > max_frames:
-        keep = sorted(frames, key=lambda f: -f["duration_min"])[:max_frames]
-        keep_ids = {f["id"] for f in keep}
-        dropped = len(frames) - len(keep)
-        frames = [f for f in frames if f["id"] in keep_ids]
-    else:
-        dropped = 0
+    frames = kept_frames_serialised
 
     day = d["window"].get("day", d["window"]["start_utc"][:10])
     lines = [
