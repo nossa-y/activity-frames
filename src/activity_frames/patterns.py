@@ -1,9 +1,21 @@
 """Repetitive-workflow detection (port of Nocta's PatternDetector.swift).
 
-Six deterministic detectors over the recorder DB. Each returns
+Seven deterministic detectors over the recorder DB. Each returns
 WorkPattern rows: a machine-readable kind, a human-readable label, and
 the observed count. No scoring, no inference; a pattern is reported
 only when it actually repeated.
+
+Detectors:
+  1. repeated_clicks    - identical UI elements clicked MIN_FREQUENCY+ times
+  2. url_patterns       - URL subtree visited MIN_FREQUENCY+ times
+  3. action_sequences   - repeated click bigrams and trigrams
+  4. app_switching      - repeated app-transition pairs
+  5. repeated_text      - identical typed strings (off by default)
+  6. daily_habits       - UI actions repeated across multiple calendar days
+  7. temporal_rhythms   - clock-hour clustering of recurring activities
+                          across MIN_DAYS_FOR_RHYTHM+ distinct days.
+                          Reports phase (hour window) and regularity (0-1).
+                          Measured only: no interpretation, no labelling.
 """
 from __future__ import annotations
 
@@ -13,6 +25,9 @@ from urllib.parse import urlsplit
 from .db import Database
 
 MIN_FREQUENCY = 3
+MIN_DAYS_FOR_RHYTHM = 3       # days a phase must appear on before we emit it
+RHYTHM_BIN_MINUTES = 30      # bucket width for hour-of-day clustering
+RHYTHM_REGULARITY_THRESHOLD = 0.6  # fraction of observed days that must hit
 _GENERIC_ELEMENTS = {"scroll area", "group", "cell", "text", "text field"}
 
 
@@ -40,6 +55,7 @@ def detect(db: Database, start_utc: str, end_utc: str,
         out += daily_habits(db, start_utc, end_utc)
     out += url_patterns(db, start_utc, end_utc)
     out += app_switching(db, start_utc, end_utc)
+    out += temporal_rhythms(db, start_utc, end_utc)
     return out
 
 
@@ -251,3 +267,102 @@ def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
         )
         for n, h in keep[:10]
     ]
+
+
+def temporal_rhythms(db: Database, start: str, end: str) -> list[WorkPattern]:
+    """Detect hour-of-day clustering of recurring app sessions across days.
+
+    Algorithm (all deterministic, zero interpretation):
+
+    1. Pull every focused frame in the window; extract (date, app, hour_bin)
+       where hour_bin = floor(local_minute_of_day / RHYTHM_BIN_MINUTES).
+    2. For each (app, hour_bin) pair count how many distinct calendar days it
+       appears on and how many days are in the window.
+    3. Emit a WorkPattern when:
+         - distinct days  >= MIN_DAYS_FOR_RHYTHM
+         - regularity     >= RHYTHM_REGULARITY_THRESHOLD
+       where regularity = distinct_days_hit / total_days_in_window (capped 1).
+
+    Output label format:
+        "<App> active at HH:MM-HH:MM on <n>/<total> days (regularity 0.87)"
+
+    The label carries the observed times and a regularity number.
+    Meaning ("morning ritual", "focus block") is the consuming agent's job
+    per SPEC §7 Tier-2 rules — we emit timing, not interpretation.
+    """
+    from datetime import datetime, timezone
+
+    rows = db.rows(
+        """
+        SELECT timestamp, app_name FROM frames
+        WHERE timestamp BETWEEN ? AND ?
+          AND focused = 1
+          AND app_name IS NOT NULL AND app_name != ''
+        ORDER BY timestamp ASC
+        """,
+        (start, end),
+    )
+    if not rows:
+        return []
+
+    # ---- Build (app, bin) -> set[date] map ---------------------------------
+    # Parse timestamps into local (date, minute-of-day).
+    # We parse to epoch via strptime (same pattern as parse_epoch in _time.py)
+    # then convert to local wall time to get hour-of-day.
+    bin_days: dict[tuple[str, int], set[str]] = {}
+    seen_dates: set[str] = set()
+
+    for (ts_raw, app_name) in rows:
+        if not ts_raw or len(ts_raw) < 19:
+            continue
+        try:
+            dt_utc = datetime.strptime(ts_raw[:19], "%Y-%m-%dT%H:%M:%S").replace(
+                tzinfo=timezone.utc
+            )
+        except ValueError:
+            continue
+        dt_local = dt_utc.astimezone()
+        local_date = dt_local.strftime("%Y-%m-%d")
+        seen_dates.add(local_date)
+        local_minute_of_day = dt_local.hour * 60 + dt_local.minute
+        hour_bin = local_minute_of_day // RHYTHM_BIN_MINUTES
+        key = (app_name, hour_bin)
+        bin_days.setdefault(key, set()).add(local_date)
+
+    if not seen_dates:
+        return []
+
+    total_days = len(seen_dates)
+
+    # ---- Score and filter --------------------------------------------------
+    candidates: list[tuple[str, int, int, float]] = []  # (app, bin, days_hit, regularity)
+    for (app_name, hour_bin), days_hit_set in bin_days.items():
+        days_hit = len(days_hit_set)
+        if days_hit < MIN_DAYS_FOR_RHYTHM:
+            continue
+        regularity = days_hit / total_days
+        if regularity < RHYTHM_REGULARITY_THRESHOLD:
+            continue
+        candidates.append((app_name, hour_bin, days_hit, regularity))
+
+    # Sort by regularity desc, then days_hit desc, then app name for stability.
+    candidates.sort(key=lambda c: (-c[3], -c[2], c[0]))
+
+    out: list[WorkPattern] = []
+    for app_name, hour_bin, days_hit, regularity in candidates[:12]:
+        bin_start_min = hour_bin * RHYTHM_BIN_MINUTES
+        bin_end_min = bin_start_min + RHYTHM_BIN_MINUTES
+        start_hm = f"{bin_start_min // 60:02d}:{bin_start_min % 60:02d}"
+        end_hm = f"{bin_end_min // 60:02d}:{bin_end_min % 60:02d}"
+        out.append(
+            WorkPattern(
+                kind="temporal_rhythm",
+                label=(
+                    f"{app_name} active {start_hm}-{end_hm} "
+                    f"on {days_hit}/{total_days} days "
+                    f"(regularity {regularity:.2f})"
+                ),
+                count=days_hit,
+            )
+        )
+    return out

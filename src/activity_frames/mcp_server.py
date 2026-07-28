@@ -8,6 +8,8 @@ client (Claude Code, Claude Desktop, Cursor, OpenClaw, ...) can call:
   get_steps           one frame's ordered click-by-click script (replay view)
   get_day_summary     coverage + top apps for a local day
   get_patterns        repetitive workflows over the last N days
+                        (detectors: repeated_click, url_pattern, action_sequence,
+                         app_switch, repeated_text, daily_habit, temporal_rhythm)
   get_communications  email/messaging surfaces + window titles seen
 
 Run: aframes mcp   (or: python -m activity_frames.mcp_server)
@@ -138,7 +140,9 @@ TOOLS = [
         "description": (
             "Detect repetitive workflows over the last N days: repeated "
             "clicks, URL patterns, action sequences, app-switching loops, "
-            "daily habits. Useful for automation suggestions."
+            "daily habits, and temporal rhythms (hour-of-day clustering of "
+            "recurring app sessions across days, reported with regularity "
+            "score 0-1; timing only, no interpretation)."
         ),
         "inputSchema": {
             "type": "object",
