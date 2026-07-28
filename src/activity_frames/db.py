@@ -85,6 +85,18 @@ class Database:
     def close(self) -> None:
         self._conn.close()
 
+    def __del__(self) -> None:
+        """Close the connection when the object is garbage-collected.
+
+        This is a defensive backstop for callers that do not use the context
+        manager or call close() explicitly (e.g. long-running MCP servers).
+        Silently ignores errors because __del__ must never raise.
+        """
+        try:
+            self._conn.close()
+        except Exception:
+            pass
+
     def __enter__(self) -> "Database":
         return self
 
