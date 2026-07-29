@@ -117,22 +117,38 @@ TOOLS = [
         },
     },
     {
-        "name": "get_day_summary",
-        "description": (
-            "Get coverage and per-app usage for a local day: first/last "
-            "activity, active minutes, away gaps, minutes per app, session "
-            "counts. Lighter than get_activity."
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "day": {
-                    "type": "string",
-                    "description": "Local day YYYY-MM-DD (default today)",
-                }
+    "name": "get_day_summary",
+    "description": (
+        "Get coverage and per-app usage for a local day: first/last "
+        "activity, active minutes, away gaps, minutes per app, session "
+        "counts. Lighter than get_activity. Set include_patterns to "
+        "also append repeated-workflow counts from get_patterns "
+        "(kind/label/count only, no prose) so both fit in one call."
+    ),
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "day": {
+                "type": "string",
+                "description": "Local day YYYY-MM-DD (default today)",
+            },
+            "include_patterns": {
+                "type": "boolean",
+                "description": (
+                    "Also return repeated-workflow counts "
+                    "(same data as get_patterns; default false)"
+                ),
+            },
+            "pattern_days": {
+                "type": "number",
+                "description": (
+                    "Lookback window for patterns when include_patterns "
+                    "is true (default 7, same default as get_patterns)"
+                ),
             },
         },
     },
+},
     {
         "name": "get_patterns",
         "description": (
@@ -244,15 +260,14 @@ class MCPServer:
             ensure_ascii=False,
         )
 
-    def get_day_summary(self, day: str | None = None) -> str:
+    def get_day_summary(self, day: str | None = None, include_patterns: bool = False, pattern_days: int = 7) -> str:
         doc = self.log.day(day, min_minutes=1.0)
         d = doc.to_dict()
         from ._time import local_day_string, local_day_window_utc
 
         start, end = local_day_window_utc(day or local_day_string())
         apps = app_ledger(self.log.db, start, end)
-        return json.dumps(
-            {
+        out = {
                 "day": d["window"].get("day"),
                 "coverage": d["coverage"],
                 "apps": [
@@ -265,11 +280,15 @@ class MCPServer:
                     }
                     for a in apps[:15]
                 ],
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-
+        }
+        if include_patterns:
+                pats = self.log.patterns(int(pattern_days))
+                out["patterns"] = [
+                    {"kind": p.kind, "label": p.label, "count": p.count}
+                    for p in pats[:40]
+                ]
+        return json.dumps(out, indent=2, ensure_ascii=False)
+    
     def get_patterns(self, days: int = 7) -> str:
         pats = self.log.patterns(int(days))
         return json.dumps(

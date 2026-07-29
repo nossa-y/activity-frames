@@ -80,7 +80,26 @@ def test_unknown_tool_and_method(fixture_db):
     unknown = _rpc(s, "no/such/method")
     assert unknown["error"]["code"] == -32601
 
+def test_tool_call_get_day_summary_include_patterns(fixture_db):
+    s = _make_server(fixture_db)
+    plain = _rpc(s, "tools/call", {
+        "name": "get_day_summary",
+        "arguments": {"day": "2026-07-04"},
+    })
+    plain_payload = json.loads(plain["result"]["content"][0]["text"])
+    assert "patterns" not in plain_payload
 
+    with_patterns = _rpc(s, "tools/call", {
+        "name": "get_day_summary",
+        "arguments": {"day": "2026-07-04", "include_patterns": True},
+    })
+    payload = json.loads(with_patterns["result"]["content"][0]["text"])
+    assert "coverage" in payload and "apps" in payload
+    assert isinstance(payload["patterns"], list)
+    for p in payload["patterns"]:
+        assert set(p.keys()) == {"kind", "label", "count"}
+        
+        
 def test_serve_loop_over_stdio(fixture_db):
     s = _make_server(fixture_db)
     lines = [

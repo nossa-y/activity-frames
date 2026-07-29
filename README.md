@@ -89,7 +89,7 @@ Passively-captured activity becomes **deterministic action** - and the cheapest 
 claude mcp add activity-frames -- aframes mcp
 ```
 
-Any MCP client works: command `aframes`, args `["mcp"]`. Six tools: `get_context`, `get_activity`, `get_steps` (expand one activity frame into its ordered click-by-click script - the replay view of a demonstrated run, so an agent can repeat the task instead of re-deriving it), `get_day_summary`, `get_patterns` (repetitive-workflow detection: repeated clicks, action sequences, URL patterns, app-switching loops, daily habits), and `get_communications` (email/messaging surfaces with the window titles seen on each — for many clients the title carries the subject or conversation name; a client that doesn't title its windows with the conversation leaves only its presence to report. Titles only, measured tier: message bodies are never read).
+Any MCP client works: command `aframes`, args `["mcp"]`. Six tools: `get_context`, `get_activity`, `get_steps` (expand one activity frame into its ordered click-by-click script - the replay view of a demonstrated run, so an agent can repeat the task instead of re-deriving it), `get_day_summary` (pass `include_patterns` to append the same repeated-workflow counts as `get_patterns`, so a caller can get both in one call), `get_patterns` (repetitive-workflow detection: repeated clicks, action sequences, URL patterns, app-switching loops, daily habits), and `get_communications` (email/messaging surfaces with the window titles seen on each — for many clients the title carries the subject or conversation name; a client that doesn't title its windows with the conversation leaves only its presence to report. Titles only, measured tier: message bodies are never read).
 
 ## Use it from Python
 
