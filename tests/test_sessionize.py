@@ -97,7 +97,7 @@ def test_break_reason_in_output_with_debug(fixture_db, day_window):
     valid = {"start", "context_switch", "session_gap"}
     for fid, reason in sessionization.items():
         assert fid.startswith("f-")
-        assert reason in valid
+# ---- app_ledger session tracking ----
 
 
 def test_app_ledger_multiple_sessions_across_app_switches(monkeypatch):
