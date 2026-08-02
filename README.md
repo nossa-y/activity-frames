@@ -1,6 +1,7 @@
 # activity-frames powering Nocta
 
 [![Downloads](https://static.pepy.tech/badge/activity-frames)](https://pepy.tech/projects/activity-frames)
+[![GitHub stars](https://img.shields.io/github/stars/nossa-y/activity-frames)](https://github.com/nossa-y/activity-frames/stargazers)
 [![Paper](https://img.shields.io/badge/paper-PDF-b31b1b)](https://github.com/nossa-y/activity-frames/blob/main/paper/activity-frames-paper.pdf)
 [![HackerNoon](https://img.shields.io/badge/HackerNoon-top%20story-00E980?logo=hackernoon&logoColor=white)](https://hackernoon.com/i-compiled-55-days-of-screen-activity-into-episodic-memory-for-my-ai-agent)
 [![Python](https://img.shields.io/pypi/pyversions/activity-frames)](https://pypi.org/project/activity-frames/)
@@ -10,13 +11,11 @@
 [![PyPI](https://img.shields.io/pypi/v/activity-frames)](https://pypi.org/project/activity-frames/)
 
 
-> **[Download the desktop app](https://usenocta.app)** - Nocta uses activity-frames to watch how you work and brief you daily on what needs your attention. 100% local.
+**Turn your workday into structured workflows agents can execute.**
 
-**Episodic memory for AI agents - and the routines they can replay.**
+Computer-use agents work every task out from scratch, even one you've done a hundred times. And between tasks, your agent has no idea what you've been doing all day, so it starts every conversation blind.
 
-Your agent can read your code, search the web, and call APIs - but it has no idea what you've been doing all day, so it starts every conversation blind. And when it runs a task for you, it works it out from scratch every time, even one you've done a hundred times.
-
-activity-frames fixes both. It records your screen locally and compiles what it sees into structured **activity frames**: bounded, deterministic episodes of tasks you actually did. The recurring ones compile into **routines a computer-use agent can use** instead of working them out again. So it does your repetitive computer tasks **cheaper** (enriching a compiled routine costs almost no tokens) and **more reliable** (the same steps, grounded the same way every time, instead of guessing from a screenshot).
+activity-frames fixes both. It records your screen locally and compiles what it sees into structured **activity frames**: bounded, deterministic records of the tasks you actually did. The recurring ones become **workflows an agent can execute** instead of working out again. So your repetitive computer tasks get done **cheaper** (running a compiled workflow costs almost no tokens) and **more reliable** (the same steps, grounded the same way every time, instead of guessing from a screenshot) - and everything else becomes context your agent can use.
 
 ```bash
 pip install activity-frames
@@ -28,7 +27,7 @@ aframes context     # your last 2 hours, agent-ready
 
 Capture stores instants: thousands of snapshot rows a day, each one saying "at 22:53:05, Chrome showed linkedin.com/in/...". Useless to reason over.
 
-activity-frames compiles those instants into episodes:
+activity-frames compiles those instants into activity frames:
 
 ```yaml
 - id: f-0007
@@ -59,9 +58,40 @@ away: 18:47-20:24 (97m)
 
 Drop that into a prompt and your agent knows your day. A full day compiles in under a second and costs zero tokens.
 
-## Episodic memory, done honestly
+## Workflows agents can execute
 
-Agent memory today means conversation memory: what you told the model. Episodic memory is what you actually *did* - and the hard part is representing it without lying.
+Computer-use agents re-derive every task from scratch - screenshot, reason, act, repeat - even for a workflow they've run a hundred times. That re-derivation is where the token cost goes, and it's waste: the workflow hasn't changed.
+
+Because activity-frames compiles recurring activity deterministically, a task you've demonstrated becomes an executable script:
+
+```bash
+aframes steps --find "message john doe"
+```
+
+```json
+{
+  "steps": [
+    {"t": "20:24:09", "op": "focus", "target": "Google Chrome · LinkedIn", "n": 1},
+    {"t": "20:24:14", "op": "click", "target": "Search", "role": "TextField", "url": "https://www.linkedin.com/feed/", "n": 2},
+    {"t": "20:24:16", "op": "type", "chars": 8, "text": "john doe", "n": 3},
+    {"t": "20:24:21", "op": "click", "target": "John Doe", "role": "Link", "url": "https://www.linkedin.com/search/results/people/", "n": 4},
+    {"t": "20:24:29", "op": "click", "target": "Message", "role": "Button", "url": "https://www.linkedin.com/in/john-doe/", "n": 5},
+    {"t": "20:24:35", "op": "type", "chars": 71, "text": "hey, loved your post on agent memory - open to a quick chat next week?", "n": 6}
+  ],
+  "step_count": 6,
+  "unresolved_clicks": 0
+}
+```
+
+That's the replay view of a demonstrated run - ordered clicks grounded by element name and role, typed runs, focus changes. An agent repeats the task instead of re-deriving it: fill the slots with new values (a different name, the same steps) and execute. On the happy path it replays at zero model calls; anything unexpected halts and asks instead of guessing.
+
+We measured how much agents overpay to re-derive workflows they've already performed - the **Routine Overhead Ratio** - on weeks of real activity, replicated it on a public web-task dataset, and built a deterministic executor that replays a compiled workflow in a real browser. Instrument, measurements, and executor: [`research/`](research/).
+
+Passively-captured activity becomes **deterministic action** - and the cheapest computer task is the one an agent never reasons through twice.
+
+## Measured, not guessed
+
+Agent memory today means conversation memory: what you told the model. What you actually *did* is the missing half - and the hard part is representing it without lying.
 
 activity-frames enforces a two-tier contract ([SPEC.md](SPEC.md)):
 
@@ -69,18 +99,6 @@ activity-frames enforces a two-tier contract ([SPEC.md](SPEC.md)):
 - **Tier 2, inferred (optional extension):** tools that add interpretation must namespace it, tag confidence (`high | medium | speculative`), and link evidence. Facts and guesses can never silently mix.
 
 Every frame carries evidence pointers back to raw capture rows. Every document declares its blind spots. What the system did not see, it says it did not see.
-
-## Beyond memory: routines agents can replay
-
-Episodic memory tells an agent what you did. The bigger result is what it lets an agent *do*.
-
-Computer-use agents re-derive every task from scratch - screenshot, reason, act, repeat - even for a routine they've run a hundred times. That re-derivation is where the token cost goes, and it's waste: the routine hasn't changed.
-
-Because activity-frames compiles recurring activity deterministically, a routine you've done before becomes a **replayable script** - steps an agent executes directly, grounded by the accessibility tree, with no model in the loop. The agent only picks *which* routine and fills in what's new (message a different person, the same way); the replay itself costs essentially zero tokens.
-
-We measured how much agents overpay to re-derive routines they've already performed - the **Routine Overhead Ratio** - on weeks of real activity, replicated it on a public web-task dataset, and built a deterministic executor that replays a compiled routine in a real browser. Instrument, measurements, and executor: [`research/`](research/).
-
-Passively-captured activity becomes **deterministic action** - and the cheapest computer task is the one an agent never reasons through twice.
 
 ## Use it from an agent (MCP)
 

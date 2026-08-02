@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "activity-frames"
 dynamic = ["version"]
-description = "Episodic memory for AI agents: compile raw screen capture into structured, deterministic activity frames."
+description = "Turn your workday into structured workflows agents can execute. 100% local, served over MCP."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
