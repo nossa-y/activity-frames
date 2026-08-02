@@ -317,9 +317,15 @@ class AppUsage:
     top_windows: list[str]
 
 
-def app_ledger(db: Database, start_utc: str, end_utc: str,
-               *, dwell_cap: float = DWELL_CAP,
-               session_gap: float = SESSION_GAP) -> list[AppUsage]:
+def app_ledger(
+    db: Database,
+    start_utc: str,
+    end_utc: str,
+    *,
+    dwell_cap: float = DWELL_CAP,
+    session_gap: float = SESSION_GAP,
+    merge_flicker: float = MERGE_FLICKER,
+) -> list[AppUsage]:
     all_frames = load_frames(db, start_utc, end_utc)
     dwell: dict[str, float] = {}
     windows: dict[str, dict[str, float]] = {}
@@ -333,32 +339,61 @@ def app_ledger(db: Database, start_utc: str, end_utc: str,
         by_device.setdefault(f.device, []).append(f)
 
     for frames in by_device.values():
-        cur_app: str | None = None
-        cur_app_duration: float = 0.0
-        for i, f in enumerate(frames[:-1]):
-            gap = frames[i + 1].epoch - f.epoch
-            if gap > session_gap:
-                if cur_app and cur_app_duration > 0:
-                    longest[cur_app] = max(longest.get(cur_app, 0.0), cur_app_duration)
-                cur_app = None
-                cur_app_duration = 0.0
-                continue
-            d = min(gap, dwell_cap)
-            if d > 0:
+        # Pass 1: raw segmentation by app context key or session_gap.
+        raw_segs: list[Segment] = []
+        cur: Segment | None = None
+        for i, f in enumerate(frames):
+            gap_to_next = (
+                frames[i + 1].epoch - f.epoch if i + 1 < len(frames) else None
+            )
+            d = min(gap_to_next, dwell_cap) if gap_to_next is not None else 0.0
+
+            if gap_to_next is not None and gap_to_next <= session_gap and d > 0:
                 dwell[f.app] = dwell.get(f.app, 0.0) + d
                 if f.window:
                     windows.setdefault(f.app, {})
                     windows[f.app][f.window] = windows[f.app].get(f.window, 0.0) + d
-                if f.app != cur_app:
-                    if cur_app and cur_app_duration > 0:
-                        longest[cur_app] = max(longest.get(cur_app, 0.0), cur_app_duration)
-                    cur_app = f.app
-                    cur_app_duration = 0.0
-                    sessions[f.app] = sessions.get(f.app, 0) + 1
-                cur_app_duration += d
 
-        if cur_app and cur_app_duration > 0:
-            longest[cur_app] = max(longest.get(cur_app, 0.0), cur_app_duration)
+            if cur is None or f.app != cur.app:
+                cur = Segment(
+                    app=f.app, domain=None, start_epoch=f.epoch, end_epoch=f.epoch
+                )
+                raw_segs.append(cur)
+
+            cur.frames.append(f)
+            cur.end_epoch = f.epoch
+            if gap_to_next is not None and gap_to_next <= session_gap:
+                cur.active_seconds += d
+            if gap_to_next is not None and gap_to_next > session_gap:
+                cur = None
+
+        # Pass 2: flicker fold (A -> B -> A where B wall_seconds <= merge_flicker).
+        if merge_flicker > 0:
+            merged_segs: list[Segment] = []
+            i = 0
+            while i < len(raw_segs):
+                seg = raw_segs[i]
+                while (
+                    i + 2 < len(raw_segs)
+                    and raw_segs[i + 1].wall_seconds() <= merge_flicker
+                    and raw_segs[i + 2].app == seg.app
+                    and raw_segs[i + 1].start_epoch - seg.end_epoch <= session_gap
+                    and raw_segs[i + 2].start_epoch - raw_segs[i + 1].end_epoch <= session_gap
+                ):
+                    cont = raw_segs[i + 2]
+                    seg.frames.extend(cont.frames)
+                    seg.active_seconds += cont.active_seconds
+                    seg.end_epoch = cont.end_epoch
+                    i += 2
+                merged_segs.append(seg)
+                i += 1
+        else:
+            merged_segs = raw_segs
+
+        for seg in merged_segs:
+            if seg.active_seconds > 0 or seg.wall_seconds() > 0:
+                sessions[seg.app] = sessions.get(seg.app, 0) + 1
+                longest[seg.app] = max(longest.get(seg.app, 0.0), seg.active_seconds)
 
     out = []
     for app, secs in sorted(dwell.items(), key=lambda kv: -kv[1]):
