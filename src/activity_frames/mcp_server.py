@@ -138,7 +138,7 @@ TOOLS = [
         "description": (
             "Detect repetitive workflows over the last N days: repeated "
             "clicks, URL patterns, action sequences, app-switching loops, "
-            "daily habits. Useful for automation suggestions."
+            "temporal rhythms, daily habits. Useful for automation suggestions."
         ),
         "inputSchema": {
             "type": "object",

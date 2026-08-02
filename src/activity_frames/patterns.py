@@ -1,6 +1,6 @@
 """Repetitive-workflow detection (port of Nocta's PatternDetector.swift).
 
-Six deterministic detectors over the recorder DB. Each returns
+Seven deterministic detectors over the recorder DB. Each returns
 WorkPattern rows: a machine-readable kind, a human-readable label, and
 the observed count. No scoring, no inference; a pattern is reported
 only when it actually repeated.
@@ -18,7 +18,7 @@ _GENERIC_ELEMENTS = {"scroll area", "group", "cell", "text", "text field"}
 
 @dataclass
 class WorkPattern:
-    kind: str    # repeated_click | url_pattern | action_sequence | app_switch | repeated_text | daily_habit
+    kind: str    # repeated_click | url_pattern | action_sequence | app_switch | repeated_text | daily_habit | temporal_rhythm
     label: str
     count: int
 
@@ -40,6 +40,7 @@ def detect(db: Database, start_utc: str, end_utc: str,
         out += daily_habits(db, start_utc, end_utc)
     out += url_patterns(db, start_utc, end_utc)
     out += app_switching(db, start_utc, end_utc)
+    out += temporal_rhythms(db, start_utc, end_utc)
     return out
 
 
@@ -251,3 +252,117 @@ def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
         )
         for n, h in keep[:10]
     ]
+
+
+MIN_DAYS_FOR_RHYTHM = 3
+MIN_REGULARITY = 0.60
+
+
+def temporal_rhythms(db: Database, start: str, end: str) -> list[WorkPattern]:
+    """Detect temporal rhythm patterns in user activity.
+
+    Clusters focused app frames by local 30-minute time bins across calendar days.
+    Emits WorkPattern(kind="temporal_rhythm") when a bin/span is hit on >= 3 distinct
+    days at a regularity >= 0.60 (fraction of active days in the window that hit the bin).
+    Adjacent qualifying bins per app are merged into a single contiguous span before the
+    top-12 cut.
+    """
+    from datetime import datetime
+
+    from ._time import parse_epoch
+    from .sessionize import clean_name
+
+    if not db.table_exists("frames"):
+        return []
+
+    rows = db.rows(
+        """
+        SELECT app_name, timestamp FROM (
+            SELECT timestamp, app_name FROM frames
+            WHERE timestamp BETWEEN ? AND ?
+              AND focused = 1
+              AND app_name IS NOT NULL AND app_name != ''
+            ORDER BY timestamp DESC LIMIT 50000
+        ) ORDER BY timestamp ASC
+        """,
+        (start, end),
+    )
+    if not rows:
+        return []
+
+    all_days_with_activity: set[str] = set()
+    binned: dict[tuple[str, int], dict] = {}
+
+    for app_raw, ts in rows:
+        epoch = parse_epoch(ts or "")
+        if epoch <= 0:
+            continue
+        dt = datetime.fromtimestamp(epoch).astimezone()
+        day_str = dt.strftime("%Y-%m-%d")
+        all_days_with_activity.add(day_str)
+
+        hour = dt.hour
+        minute = dt.minute
+        bin_idx = hour * 2 + (1 if minute >= 30 else 0)
+        app = clean_name(app_raw or "")
+        if not app:
+            continue
+
+        entry = binned.setdefault((app, bin_idx), {"days": set(), "count": 0})
+        entry["days"].add(day_str)
+        entry["count"] += 1
+
+    total_active_days = len(all_days_with_activity)
+    if total_active_days == 0:
+        return []
+
+    app_bins: dict[str, list[tuple[int, set[str], int]]] = {}
+    for (app, bin_idx), data in binned.items():
+        days_hit = len(data["days"])
+        regularity = days_hit / total_active_days
+        if days_hit >= MIN_DAYS_FOR_RHYTHM and regularity >= MIN_REGULARITY:
+            app_bins.setdefault(app, []).append((bin_idx, data["days"], data["count"]))
+
+    merged_rhythms: list[tuple[float, int, int, str, int, int]] = []
+
+    for app, bin_list in app_bins.items():
+        bin_list.sort(key=lambda x: x[0])
+
+        i = 0
+        while i < len(bin_list):
+            b_start, days_set, count_sum = bin_list[i]
+            b_end = b_start + 1
+            combined_days = set(days_set)
+
+            j = i + 1
+            while j < len(bin_list) and bin_list[j][0] == b_end:
+                combined_days.update(bin_list[j][1])
+                count_sum += bin_list[j][2]
+                b_end = bin_list[j][0] + 1
+                j += 1
+
+            days_hit_span = len(combined_days)
+            reg_span = days_hit_span / total_active_days
+            merged_rhythms.append((reg_span, days_hit_span, count_sum, app, b_start, b_end))
+            i = j
+
+    merged_rhythms.sort(key=lambda x: (-x[0], -x[1], -x[2], x[3], x[4]))
+
+    out: list[WorkPattern] = []
+    for reg, days_hit, total_cnt, app, b_start, b_end in merged_rhythms[:12]:
+        start_h, start_m = divmod(b_start * 30, 60)
+        end_h, end_m = divmod(b_end * 30, 60)
+        time_str = f"{start_h:02d}:{start_m:02d}-{end_h:02d}:{end_m:02d}"
+        label = (
+            f"{app} active {time_str} on {days_hit}/{total_active_days} days "
+            f"(regularity {reg:.2f})"
+        )
+        out.append(
+            WorkPattern(
+                kind="temporal_rhythm",
+                label=label,
+                count=total_cnt,
+            )
+        )
+
+    return out
