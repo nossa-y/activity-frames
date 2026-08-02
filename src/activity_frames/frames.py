@@ -148,20 +148,14 @@ class ActivityDocument:
 
 
 def _pages_for_segment(seg: Segment) -> list[PageView]:
-    """Aggregate consecutive URL views into typed page references."""
+    """Aggregate URL views in a segment into typed page references."""
     views: list[PageView] = []
     index: dict[tuple[str, str | None], PageView] = {}  # O(1) duplicate lookup
-    last_key: tuple[str, str | None] | None = None
     for f in seg.frames:
         if not f.url:
             continue
         ref = parse_url(f.url)
         key = (ref.kind, ref.entity)
-        if last_key == key and views:
-            views[-1].count += 1
-            continue
-        # Re-visit of an earlier page in the same segment: bump it instead
-        # of appending a duplicate entry.
         existing = index.get(key)
         if existing is not None:
             existing.count += 1
@@ -169,7 +163,6 @@ def _pages_for_segment(seg: Segment) -> list[PageView]:
             pv = PageView(kind=ref.kind, entity=ref.entity, count=1)
             views.append(pv)
             index[key] = pv
-        last_key = key
     return views
 
 

@@ -80,3 +80,27 @@ def test_context_block_respects_max_frames(fixture_db, day_window):
     frame_lines = [l for l in ctx.splitlines() if l.startswith("- ")]
     assert len(frame_lines) == 1
     assert "omitted" in ctx
+
+
+def test_pages_for_segment_revisit_then_dwell():
+    from activity_frames.frames import _pages_for_segment
+    from activity_frames.sessionize import RawFrame, Segment
+
+    url_a = "https://github.com/nossa-y/activity-frames"
+    url_b = "https://github.com/nossa-y/activity-frames/issues/31"
+    raw_frames = [
+        RawFrame(id=1, epoch=100.0, app="Google Chrome", window="Code", url=url_a, domain="github.com"),
+        RawFrame(id=2, epoch=110.0, app="Google Chrome", window="Issues", url=url_b, domain="github.com"),
+        RawFrame(id=3, epoch=120.0, app="Google Chrome", window="Code", url=url_a, domain="github.com"),
+        RawFrame(id=4, epoch=130.0, app="Google Chrome", window="Code", url=url_a, domain="github.com"),
+    ]
+    seg = Segment(app="Google Chrome", domain="github.com", start_epoch=100.0, end_epoch=130.0, frames=raw_frames)
+    pages = _pages_for_segment(seg)
+
+    assert len(pages) == 2
+    page_a = next(p for p in pages if p.kind == "repo")
+    page_b = next(p for p in pages if p.kind == "issue")
+    assert page_a.count == 3
+    assert page_b.count == 1
+
+

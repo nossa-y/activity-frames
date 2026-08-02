@@ -66,20 +66,20 @@ def context_block(doc: ActivityDocument, *, max_frames: int = 40) -> str:
     Chronological, one line per frame, entities inline. Roughly 15-25
     tokens per frame; a full working day fits in well under 1.5k tokens.
     """
-    d = doc.to_dict(False)
-    cov = d["coverage"]
-    frames = d["frames"]
+    cov = doc.coverage
+    all_frames = doc.frames
 
     # If over budget, keep the longest frames but preserve chronology.
-    if len(frames) > max_frames:
-        keep = sorted(frames, key=lambda f: -f["duration_min"])[:max_frames]
-        keep_ids = {f["id"] for f in keep}
-        dropped = len(frames) - len(keep)
-        frames = [f for f in frames if f["id"] in keep_ids]
+    if len(all_frames) > max_frames:
+        keep = sorted(all_frames, key=lambda f: -f.duration_min)[:max_frames]
+        keep_indices = {f.index for f in keep}
+        dropped = len(all_frames) - len(keep)
+        kept_frames = [f.to_dict(False) for f in all_frames if f.index in keep_indices]
     else:
         dropped = 0
+        kept_frames = [f.to_dict(False) for f in all_frames]
 
-    day = d["window"].get("day", d["window"]["start_utc"][:10])
+    day = doc.window.get("day", doc.window["start_utc"][:10])
     lines = [
         f"USER ACTIVITY ({day}, local time; measured from screen capture, "
         "no interpretation):",
@@ -88,7 +88,7 @@ def context_block(doc: ActivityDocument, *, max_frames: int = 40) -> str:
     ]
     for g in cov.get("gaps", []):
         lines.append(f"away: {g['start']}-{g['end']} ({g['minutes']}m)")
-    for f in frames:
+    for f in kept_frames:
         where = f["app"] + (f"/{f['site']}" if f.get("site") else "")
         bits = []
         for p in f.get("pages", [])[:4]:
@@ -109,10 +109,10 @@ def context_block(doc: ActivityDocument, *, max_frames: int = 40) -> str:
         )
     if dropped:
         lines.append(f"(+{dropped} frames over the size budget omitted)")
-    omitted = d.get("omitted", {}).get("below_min_minutes", 0)
+    omitted = doc.omitted_below_min
     if omitted:
         lines.append(
             f"(+{omitted} brief frames under "
-            f"{d['omitted']['min_minutes']} min omitted)"
+            f"{doc.min_minutes} min omitted)"
         )
     return "\n".join(lines)
