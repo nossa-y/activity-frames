@@ -55,3 +55,4 @@ exclude = ["/research", "/paper", "/benchmark", "/dist", "/.github"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]

@@ -98,3 +98,58 @@ def test_break_reason_in_output_with_debug(fixture_db, day_window):
     for fid, reason in sessionization.items():
         assert fid.startswith("f-")
         assert reason in valid
+
+
+# ---- app_ledger session tracking ----
+
+def test_app_ledger_multiple_sessions_across_app_switches(monkeypatch):
+    from activity_frames.sessionize import RawFrame, app_ledger
+    import activity_frames.sessionize as sess
+
+    # App A (10m) -> App B (10m) -> App A (10m) where B > 20s flicker threshold
+    raw_frames = []
+    t = 0.0
+    for _ in range(10):  # Cursor 10m
+        raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w1", url=None, domain=None))
+        t += 60.0
+    for _ in range(10):  # Chrome 10m
+        raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Google Chrome", window="w2", url="https://google.com", domain="google.com"))
+        t += 60.0
+    for _ in range(10):  # Cursor 10m again
+        raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w3", url=None, domain=None))
+        t += 60.0
+    raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w3", url=None, domain=None))
+
+    monkeypatch.setattr(sess, "load_frames", lambda db, s, e: raw_frames)
+    ledger = app_ledger(None, "start", "end")
+    cursor = next(a for a in ledger if a.app == "Cursor")
+    assert cursor.sessions == 2
+    assert cursor.minutes == 20.0
+    assert cursor.longest_session_min == 10
+
+
+def test_app_ledger_flicker_interruption_does_not_split_session(monkeypatch):
+    from activity_frames.sessionize import RawFrame, app_ledger
+    import activity_frames.sessionize as sess
+
+    # App A (10m) -> 5s App B flicker -> App A (10m)
+    raw_frames = []
+    t = 0.0
+    for _ in range(10):  # Cursor 10m
+        raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w1", url=None, domain=None))
+        t += 60.0
+    # 5s flicker to Slack
+    raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=600.0, app="Slack", window="w2", url=None, domain=None))
+    t = 605.0
+    for _ in range(10):  # Cursor 10m again
+        raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w3", url=None, domain=None))
+        t += 60.0
+    raw_frames.append(RawFrame(id=len(raw_frames) + 1, epoch=t, app="Cursor", window="w3", url=None, domain=None))
+
+    monkeypatch.setattr(sess, "load_frames", lambda db, s, e: raw_frames)
+    ledger = app_ledger(None, "start", "end")
+    cursor = next(a for a in ledger if a.app == "Cursor")
+    assert cursor.sessions == 1
+    assert cursor.minutes == 20.0
+    assert cursor.longest_session_min == 20
+
