@@ -166,4 +166,8 @@ Run `aframes <cmd> --help` for the full flag set (`--db`, `--include-text`, `--l
 
 v0.2. Developed and tested on macOS (Apple Silicon); an Intel macOS engine build is published but less exercised - reports welcome. No prebuilt Linux engine yet: on Linux, run your own recorder and point `$AFRAMES_DB` at its database (the compiler itself is tested on Linux in CI). Entity parsers cover LinkedIn, GitHub, GitLab, Google (Search/Docs/Gmail/Maps/Meet/Calendar), YouTube, X, Instagram, Reddit, Luma, Partiful, Product Hunt, Vercel, Supabase, Stripe (dashboard), Discord, Slack, Notion, Figma, Linear, Stack Overflow, Calendly, Crunchbase, Atlassian (Jira/Confluence), ChatGPT/Claude, localhost; unknown sites fall back to a generic page reference - always total, never lossy. Issues and parser PRs welcome.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nossa-y/activity-frames&type=Date)](https://star-history.com/#nossa-y/activity-frames&Date)
+
 Built by [Nossa](https://github.com/nossa-y), maker of [Nocta](https://usenocta.app). MIT.
