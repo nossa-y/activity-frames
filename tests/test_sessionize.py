@@ -52,6 +52,64 @@ def test_app_ledger_ordering_and_sessions(fixture_db, day_window):
     assert chrome.sessions >= 2  # linkedin block + github block
 
 
+def test_app_ledger_splits_on_app_switch(tmp_path):
+    """Cursor -> Chrome -> Cursor within 300s: Cursor should be 2 sessions."""
+    import sqlite3
+    from activity_frames.db import Database
+
+    path = tmp_path / "db.sqlite"
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE frames (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TIMESTAMP NOT NULL,
+            app_name TEXT, window_name TEXT, focused BOOLEAN,
+            browser_url TEXT, document_path TEXT,
+            device_name TEXT NOT NULL DEFAULT 'monitor_1'
+        );
+        """
+    )
+    # Cursor 10:00:00-10:10:00 (every 20s, 30 frames)
+    # Chrome  10:10:00-10:20:00 (every 20s, 30 frames)
+    # Cursor  10:20:00-10:30:00 (every 20s, 30 frames)
+    base = "2026-08-01T"
+    t = 0
+    for _ in range(30):
+        conn.execute(
+            "INSERT INTO frames (timestamp, app_name, window_name, focused)"
+            " VALUES (?, 'Cursor', 'main.py', 1)",
+            (f"{base}10:{t//60:02d}:{t%60:02d}.000000+00:00",),
+        )
+        t += 20
+    for _ in range(30):
+        conn.execute(
+            "INSERT INTO frames (timestamp, app_name, window_name, focused)"
+            " VALUES (?, 'Google Chrome', 'github.com', 1)",
+            (f"{base}10:{t//60:02d}:{t%60:02d}.000000+00:00",),
+        )
+        t += 20
+    for _ in range(30):
+        conn.execute(
+            "INSERT INTO frames (timestamp, app_name, window_name, focused)"
+            " VALUES (?, 'Cursor', 'server.py', 1)",
+            (f"{base}10:{t//60:02d}:{t%60:02d}.000000+00:00",),
+        )
+        t += 20
+    conn.commit()
+    conn.close()
+
+    db = Database(str(path))
+    ledger = app_ledger(db, f"{base}00:00:00", f"{base}12:00:00")
+    cursor = next(a for a in ledger if a.app == "Cursor")
+    chrome = next(a for a in ledger if a.app == "Google Chrome")
+
+    # Chrome had 1 uninterrupted block, so 1 session.
+    assert chrome.sessions == 1
+    # Cursor was interrupted by Chrome, so 2 distinct sessions.
+    assert cursor.sessions == 2
+
+
 def test_empty_window(fixture_db):
     assert segments(fixture_db, "2020-01-01T00:00:00", "2020-01-02T00:00:00") == []
     cov = coverage(fixture_db, "2020-01-01T00:00:00", "2020-01-02T00:00:00")

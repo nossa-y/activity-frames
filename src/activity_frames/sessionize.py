@@ -333,11 +333,13 @@ def app_ledger(db: Database, start_utc: str, end_utc: str,
         by_device.setdefault(f.device, []).append(f)
 
     for frames in by_device.values():
-        cur_session: dict[str, float] = {}
+        cur_app: str | None = None
+        cur_dur: float = 0.0
         for i, f in enumerate(frames[:-1]):
             gap = frames[i + 1].epoch - f.epoch
             if gap > session_gap:
-                cur_session.clear()
+                cur_app = None
+                cur_dur = 0.0
                 continue
             d = min(gap, dwell_cap)
             dwell[f.app] = dwell.get(f.app, 0.0) + d
@@ -345,10 +347,13 @@ def app_ledger(db: Database, start_utc: str, end_utc: str,
                 windows.setdefault(f.app, {})
                 windows[f.app][f.window] = windows[f.app].get(f.window, 0.0) + d
             if d > 0:
-                if cur_session.get(f.app, 0.0) == 0.0:
+                if f.app != cur_app:
+                    cur_app = f.app
+                    cur_dur = d
                     sessions[f.app] = sessions.get(f.app, 0) + 1
-                cur_session[f.app] = cur_session.get(f.app, 0.0) + d
-                longest[f.app] = max(longest.get(f.app, 0.0), cur_session[f.app])
+                else:
+                    cur_dur += d
+                longest[f.app] = max(longest.get(f.app, 0.0), cur_dur)
 
     out = []
     for app, secs in sorted(dwell.items(), key=lambda kv: -kv[1]):
