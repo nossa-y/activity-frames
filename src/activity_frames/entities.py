@@ -536,6 +536,29 @@ def _gitlab(domain, parts, q):
     return None
 
 
+def _hackernews(domain, parts, q):
+    if not parts:
+        return PageRef(kind="feed", domain=domain)
+    head = parts[0]
+    if head == "item":
+        return PageRef(kind="post", domain=domain, entity=q.get("id", [None])[0])
+    if head == "user":
+        return PageRef(kind="profile", domain=domain, entity=q.get("id", [None])[0])
+    if head == "from":
+        return PageRef(kind="search", domain=domain,
+                       entity=q.get("site", [None])[0])
+    if head in ("newest", "front", "ask", "show", "shownew", "best",
+                "active", "noobstories", "launches"):
+        return PageRef(kind="feed", domain=domain, entity=head)
+    if head == "jobs":
+        return PageRef(kind="jobs", domain=domain)
+    if head == "threads":
+        return PageRef(kind="profile", domain=domain, entity=q.get("id", [None])[0])
+    if head == "submit":
+        return PageRef(kind="submit", domain=domain)
+    return None
+
+
 def _localhost(domain, parts, q):
     return PageRef(kind="local_dev", domain=domain, entity="/".join(parts[:2]) or None)
 
@@ -576,6 +599,7 @@ def _atlassian(domain, parts, q):
 _SITE_PARSERS = {
     "atlassian.net": _atlassian,
     "crunchbase.com": _crunchbase,
+    "news.ycombinator.com": _hackernews,
     "linkedin.com": _linkedin,
     "github.com": _github,
     "gitlab.com": _gitlab,

@@ -323,3 +323,45 @@ def test_atlassian_confluence_page():
 def test_atlassian_unknown_path_falls_through():
     unknown = parse_url("https://acme.atlassian.net/plugins/servlet/ac")
     assert (unknown.kind, unknown.entity) == ("page", "plugins")
+
+
+def test_hackernews_frontpage():
+    assert parse_url("https://news.ycombinator.com/").kind == "feed"
+
+
+def test_hackernews_post():
+    r = parse_url("https://news.ycombinator.com/item?id=42957019")
+    assert (r.kind, r.entity) == ("post", "42957019")
+
+
+def test_hackernews_user():
+    r = parse_url("https://news.ycombinator.com/user?id=pg")
+    assert (r.kind, r.entity) == ("profile", "pg")
+
+
+def test_hackernews_from_site():
+    r = parse_url("https://news.ycombinator.com/from?site=github.com")
+    assert (r.kind, r.entity) == ("search", "github.com")
+
+
+def test_hackernews_lists():
+    for slug, entity in [("newest", "newest"), ("ask", "ask"),
+                         ("show", "show"), ("front", "front"),
+                         ("best", "best"), ("active", "active")]:
+        r = parse_url(f"https://news.ycombinator.com/{slug}")
+        assert (r.kind, r.entity) == ("feed", entity)
+
+
+def test_hackernews_jobs():
+    r = parse_url("https://news.ycombinator.com/jobs")
+    assert r.kind == "jobs"
+
+
+def test_hackernews_threads():
+    r = parse_url("https://news.ycombinator.com/threads?id=dang")
+    assert (r.kind, r.entity) == ("profile", "dang")
+
+
+def test_hackernews_submit():
+    r = parse_url("https://news.ycombinator.com/submit")
+    assert r.kind == "submit"
