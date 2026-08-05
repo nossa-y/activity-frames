@@ -1,6 +1,7 @@
 # activity-frames powering Nocta
 
 [![Downloads](https://static.pepy.tech/badge/activity-frames)](https://pepy.tech/projects/activity-frames)
+[![GitHub stars](https://img.shields.io/github/stars/nossa-y/activity-frames)](https://github.com/nossa-y/activity-frames/stargazers)
 [![Paper](https://img.shields.io/badge/paper-PDF-b31b1b)](https://github.com/nossa-y/activity-frames/blob/main/paper/activity-frames-paper.pdf)
 [![HackerNoon](https://img.shields.io/badge/HackerNoon-top%20story-00E980?logo=hackernoon&logoColor=white)](https://hackernoon.com/i-compiled-55-days-of-screen-activity-into-episodic-memory-for-my-ai-agent)
 [![Python](https://img.shields.io/pypi/pyversions/activity-frames)](https://pypi.org/project/activity-frames/)
@@ -9,8 +10,6 @@
 [![tests](https://github.com/nossa-y/activity-frames/actions/workflows/test.yml/badge.svg)](https://github.com/nossa-y/activity-frames/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/activity-frames)](https://pypi.org/project/activity-frames/)
 
-
-> **[Download the desktop app](https://usenocta.app)** - Nocta uses activity-frames to watch how you work and brief you daily on what needs your attention. 100% local.
 
 **Turn your workday into structured workflows agents can execute.**
 
