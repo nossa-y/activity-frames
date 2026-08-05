@@ -65,7 +65,7 @@ Computer-use agents re-derive every task from scratch - screenshot, reason, act,
 Because activity-frames compiles recurring activity deterministically, a task you've demonstrated becomes an executable script:
 
 ```bash
-aframes steps --find "message john doe"
+aframes steps --frame f-0002 --include-text
 ```
 
 ```json
@@ -84,6 +84,8 @@ aframes steps --find "message john doe"
 ```
 
 That's the replay view of a demonstrated run - ordered clicks grounded by element name and role, typed runs, focus changes. An agent repeats the task instead of re-deriving it: fill the slots with new values (a different name, the same steps) and execute. On the happy path it replays at zero model calls; anything unexpected halts and asks instead of guessing.
+
+`aframes steps` and MCP `get_steps` return typed and pasted input as character counts by default. Pass `--include-text` or `include_text: true` only when you intentionally want the capped content. When expanding a frame returned by `get_activity`, reuse the same `day` or `hours` and `min_minutes` values so its frame id resolves against the same activity selection.
 
 We measured how much agents overpay to re-derive workflows they've already performed - the **Routine Overhead Ratio** - on weeks of real activity, replicated it on a public web-task dataset, and built a deterministic executor that replays a compiled workflow in a real browser. Instrument, measurements, and executor: [`research/`](research/).
 
@@ -124,7 +126,7 @@ print(log.context(hours=2))          # paste-ready context block
 
 - **Local only.** Capture, storage, and compilation all happen on your machine. Nothing is uploaded anywhere, ever.
 - **Read-only compilation.** The compiler opens the capture database read-only.
-- **Content opt-in at the output.** Compiled documents carry input *counts* by default; typed-text content appears only if you explicitly pass `--include-text` (this also gates the repeated-text pattern detector). Be clear about the boundary: the capture database itself does store what the recorder sees, locally, so protect it like any sensitive file (FileVault, permissions).
+- **Content opt-in at the output.** Compiled documents and replay steps carry input *counts* by default; typed-text content appears only if you explicitly pass `--include-text` or `include_text: true` (this also gates the repeated-text pattern detector). Be clear about the boundary: the capture database itself does store what the recorder sees, locally, so protect it like any sensitive file (FileVault, permissions).
 - **Audio off by default.** `aframes record --audio` to opt in.
 - **No LLM in the compile path.** Compilation is plain code, so no language model, local or remote, is involved in producing memory. The capture engine does run on-device OCR to read what is on screen; that stays on your machine.
 - **You choose what leaves**, when you paste a context block into an agent. Note that window titles and page entities originate from your screen and can contain third-party text; agents should treat them as data, not instructions.
@@ -152,7 +154,7 @@ aframes context --hours 3        # agent context block
 aframes apps                     # per-app time ledger
 aframes patterns --days 7        # repetitive workflow detection
 aframes comms --hours 24         # email/messaging surfaces + titles seen
-aframes steps --frame f-0002     # one frame's click-by-click script (or --find "task query")
+aframes steps --frame f-0002     # one frame's click-by-click script; add --include-text for content
 aframes mcp                      # MCP stdio server
 ```
 
