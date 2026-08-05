@@ -1,6 +1,7 @@
 """get_steps: the one-shot click-by-click drill-down behind an activity frame."""
 import json
 import sqlite3
+from types import SimpleNamespace
 
 from activity_frames.db import Database
 from activity_frames.mcp_server import MCPServer
@@ -9,7 +10,7 @@ from conftest import ts
 from test_mcp import _make_server, _rpc
 
 
-def _steps_db(tmp_path):
+def _steps_db(tmp_path, *, out_of_order_event=False):
     """A short demonstrated task: portal login -> download -> typed note.
 
     One Chrome session 17:00-17:02 with frames every ~20s, labeled and
@@ -87,6 +88,12 @@ def _steps_db(tmp_path):
         "width_bound, height_bound) VALUES (3, 'AXButton', 'Download PDF', "
         "0.45, 0.45, 0.1, 0.1)"
     )
+    if out_of_order_event:
+        conn.execute(
+            "INSERT INTO ui_events (timestamp, event_type, app_name, element_name, "
+            "element_role) VALUES (?, 'click', 'Google Chrome', 'Earlier', 'AXButton')",
+            (ts("17:00:03"),),
+        )
     conn.commit()
     conn.close()
     return Database(str(path))
@@ -104,7 +111,8 @@ def test_get_steps_end_to_end(tmp_path):
     out = json.loads(
         _rpc(s, "tools/call", {"name": "get_steps",
                                "arguments": {"frame": frame_id,
-                                             "day": "2026-07-04"}})
+                                             "day": "2026-07-04",
+                                             "include_text": True}})
         ["result"]["content"][0]["text"]
     )
     assert out["task"]["frame"] == frame_id
@@ -126,18 +134,67 @@ def test_get_steps_end_to_end(tmp_path):
     assert out["unresolved_clicks"] == 0
 
 
-def test_get_steps_text_optout(tmp_path):
+def test_get_steps_text_is_opt_in(tmp_path):
     s = _make_server(_steps_db(tmp_path))
     out = json.loads(
         _rpc(s, "tools/call", {"name": "get_steps",
                                "arguments": {"frame": "f-0000",
-                                             "day": "2026-07-04",
-                                             "include_text": False}})
+                                             "day": "2026-07-04"}})
         ["result"]["content"][0]["text"]
     )
     if "steps" in out:  # frame ids depend on segmentation; tolerate either id
         for st in out["steps"]:
             assert "text" not in st
+
+
+def test_cli_steps_text_is_opt_in(tmp_path, capsys):
+    from activity_frames.cli import main
+
+    db = _steps_db(tmp_path)
+    assert main(["steps", "--db", db.path, "--frame", "f-0001",
+                 "--day", "2026-07-04"]) == 0
+    default = json.loads(capsys.readouterr().out)
+    assert all("text" not in step for step in default.get("steps", []))
+
+    assert main(["steps", "--db", db.path, "--frame", "f-0001",
+                 "--day", "2026-07-04", "--include-text"]) == 0
+    opted_in = json.loads(capsys.readouterr().out)
+    assert any("text" in step for step in opted_in.get("steps", []))
+
+    assert main(["steps", "--db", db.path, "--frame", "f-0001",
+                 "--day", "2026-07-04", "--no-text"]) == 0
+    legacy_optout = json.loads(capsys.readouterr().out)
+    assert all("text" not in step for step in legacy_optout.get("steps", []))
+
+
+def test_get_steps_uses_activity_defaults_and_requested_minimum_duration():
+    class RecordingLog:
+        def __init__(self):
+            self.recent_args = None
+
+        def recent(self, hours, *, min_minutes):
+            self.recent_args = (hours, min_minutes)
+            return SimpleNamespace(frames=[])
+
+    server = MCPServer()
+    log = RecordingLog()
+    server._log = log
+
+    out = json.loads(server.get_steps(frame="f-0001", min_minutes=1.25))
+    assert "error" in out
+    assert log.recent_args == (2.0, 1.25)
+
+
+def test_steps_are_sorted_by_timestamp_not_insert_order(tmp_path):
+    db = _steps_db(tmp_path, out_of_order_event=True)
+
+    from activity_frames.steps import steps_for_frame
+
+    out = steps_for_frame(
+        db, "Google Chrome", {"frame_ids": "1..7"}, include_text=False,
+    )
+    targets = [step["target"] for step in out["steps"] if step["op"] == "click"]
+    assert targets[0] == "Earlier"
 
 
 def test_get_steps_unknown_frame(tmp_path):

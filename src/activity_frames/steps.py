@@ -16,8 +16,8 @@ Labels use a resolution chain: the event's own ``element_name``; else a
 point-in-rect hit-test of the click against the linked frame's accessibility
 elements (smallest labeled element wins); else the window title. Typed text
 comes from local capture (the recorder refuses secure-input contexts) and is
-included capped by default - pass ``include_text=False`` to serve lengths
-only.
+excluded by default. Pass ``include_text=True`` to include capped text; the
+default serves lengths only.
 """
 
 from __future__ import annotations
@@ -115,7 +115,7 @@ def steps_for_frame(
     app: str,
     evidence: dict,
     *,
-    include_text: bool = True,
+    include_text: bool = False,
     max_steps: int = 250,
     text_cap: int = 80,
 ) -> dict:
@@ -135,7 +135,7 @@ def steps_for_frame(
         f"element_name, element_role, text_content, {', '.join(opt)} "
         "FROM ui_events WHERE timestamp >= ? AND timestamp <= ? "
         f"AND event_type IN ({','.join('?' * len(_STEP_EVENTS))}) "
-        "ORDER BY id",
+        "ORDER BY timestamp ASC, id ASC",
         (start, end, *_STEP_EVENTS),
     )
 
