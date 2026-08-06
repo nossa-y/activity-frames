@@ -249,9 +249,17 @@ def find_frame(db: Database, doc, query: str, *, max_steps: int = 250) -> dict:
                         "CheckBox", "MenuItem", "MenuButton", "PopUpButton",
                         "Tab", "Cell", "StaticText"}
     best: dict | None = None
+    _step_cache: dict[tuple, dict] = {}
     for fr in doc.frames:
-        out = steps_for_frame(db, fr.app, fr.evidence,
-                              include_text=False, max_steps=max_steps)
+        cache_key = (
+            str(fr.evidence.get("frame_ids")), max_steps,
+        )
+        if cache_key in _step_cache:
+            out = _step_cache[cache_key]
+        else:
+            out = steps_for_frame(db, fr.app, fr.evidence,
+                                  include_text=False, max_steps=max_steps)
+            _step_cache[cache_key] = out
         steps = out.get("steps") or []
         if not steps:
             continue
