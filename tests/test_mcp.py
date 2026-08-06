@@ -80,7 +80,34 @@ def test_unknown_tool_and_method(fixture_db):
     unknown = _rpc(s, "no/such/method")
     assert unknown["error"]["code"] == -32601
 
+def test_tool_call_get_day_summary_include_patterns(fixture_db):
+    s = _make_server(fixture_db)
+    # Default: no patterns key at all, so existing callers see no change.
+    plain = _rpc(s, "tools/call", {
+        "name": "get_day_summary",
+        "arguments": {"day": "2026-07-04"},
+    })
+    plain_payload = json.loads(plain["result"]["content"][0]["text"])
+    assert "patterns" not in plain_payload
 
+    with_patterns = _rpc(s, "tools/call", {
+        "name": "get_day_summary",
+        "arguments": {"day": "2026-07-04", "include_patterns": True},
+    })
+    payload = json.loads(with_patterns["result"]["content"][0]["text"])
+    assert "coverage" in payload and "apps" in payload
+    # The fixture's LinkedIn/GitHub activity has real repeats; asserting a
+    # non-empty, specific pattern (not just list-shape) keeps this test
+    # clock-independent — it fails if the window drifts back to "now"
+    # instead of staying anchored on the requested day.
+    assert payload["patterns"], "expected non-empty patterns for 2026-07-04"
+    labels = {p["label"] for p in payload["patterns"]}
+    assert any("linkedin.com/feed" in label for label in labels)
+    # Same shape as get_patterns: kind/label/count, no prose fields.
+    for p in payload["patterns"]:
+        assert set(p.keys()) == {"kind", "label", "count"}
+        
+        
 def test_serve_loop_over_stdio(fixture_db):
     s = _make_server(fixture_db)
     lines = [

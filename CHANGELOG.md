@@ -4,8 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and versions follow semantic
 versioning. The document schema version is tracked separately in [SPEC.md](SPEC.md).
 
+
 ## [Unreleased]
 
+### Added
+- `get_day_summary` MCP tool: optional `include_patterns` (with `pattern_days`)
+  appends the same repeated-workflow counts as `get_patterns` to the summary,
+  so an agent wanting both no longer needs two calls (#17).
+  
 ### Fixed
 - Revisit-then-dwell page counts: `_pages_for_segment()` credited dwell frames
   to the last-appended page instead of the current page (A,B,A,A counted
