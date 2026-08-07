@@ -1,0 +1,35 @@
+name: Bug report
+description: Something broke - wrong output, crash, capture issue.
+labels: ["bug", "needs-triage"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version + platform
+      placeholder: "activity-frames 0.2.x · macOS 15 (Apple Silicon) · Python 3.12"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran (or API call), what you expected, what you got. Paste the exact error text - our troubleshooting is keyed by it.
+      placeholder: |
+        $ aframes context --hours 3
+        RecorderDBNotFound: ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Smallest sequence that triggers it. If it depends on your capture DB, describe the shape (days of capture, roughly how many frames) - never upload the DB itself.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Quick checks
+      options:
+        - label: I checked docs/troubleshooting.md for this error
+        - label: I'm on the latest PyPI release

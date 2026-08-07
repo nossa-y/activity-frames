@@ -1,0 +1,41 @@
+name: Site parser proposal
+description: Propose a new entity parser (URL -> typed page reference). Sample URLs required.
+labels: ["parser", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Parsers are pure functions of the URL - reviewable line by line, no fetching, no models.
+        A proposal with concrete URL samples and expected outputs can usually ship fast; without
+        them we'll ask for samples before moving forward. PRs welcome too (see CONTRIBUTING.md).
+  - type: input
+    id: site
+    attributes:
+      label: Site / host
+      placeholder: "app.hubspot.com"
+    validations:
+      required: true
+  - type: textarea
+    id: samples
+    attributes:
+      label: Sample URLs -> expected entities
+      description: 3-8 representative URLs (redact private IDs if needed) and the kind/entity each should produce.
+      placeholder: |
+        https://app.example.com/contacts/123-jane-doe  ->  {kind: profile, entity: "jane-doe"}
+        https://app.example.com/deals?search=acme      ->  {kind: search, entity: "acme"}
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this site matters
+      description: What agent use case does typing these pages unlock?
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Ground rules
+      options:
+        - label: The mapping is derivable from the URL alone (no page fetch, no model)
+          required: true
