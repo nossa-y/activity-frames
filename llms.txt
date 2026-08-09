@@ -1,0 +1,46 @@
+# activity-frames
+
+> Deterministic compiler from locally-captured screen activity (SQLite) to agent memory:
+> typed activity frames, compact context blocks, and replayable click-by-click scripts.
+> No LLM in the compile path; byte-identical output; local-only; MIT.
+
+## Install
+pip install activity-frames            # zero dependencies, py3.9+
+pip install "activity-frames[yaml]"    # optional YAML output
+
+## CLI (entry point: aframes)
+aframes record            # start/stop local capture engine (macOS)
+aframes today | day DATE  # structured frames (YAML/JSON/md)
+aframes context --hours N # compact agent context block
+aframes apps              # per-app time ledger
+aframes patterns --days N # repetitive workflow detection
+aframes comms --hours N   # email/messaging surfaces + titles
+aframes steps --frame ID | --find "task query"   # replay-view script
+aframes mcp               # MCP stdio server
+
+## MCP (6 tools)
+get_context, get_activity, get_steps, get_day_summary, get_patterns, get_communications
+Register: claude mcp add activity-frames -- aframes mcp
+
+## Python API
+from activity_frames import ActivityLog
+ActivityLog().day() / .recent(hours=N) / .context(hours=N)
+Also exported: Database, find_default_db, segments, app_ledger, coverage,
+context_block, to_json, to_yaml, to_markdown, parse_url, detect_patterns, comm_surfaces
+
+## Data source
+Local capture DB (default engine provisioned by `aframes record`; hash-verified).
+Bring your own recorder: set $AFRAMES_DB to any DB with frames/ui_events/elements tables.
+
+## Docs
+AGENTS.md - integration guide for AI agents
+SPEC.md - schema contract (measured vs inferred)
+docs/mcp.md, docs/python.md, docs/cli.md, docs/troubleshooting.md
+research/ - Routine Overhead Ratio instrument + replay executor
+
+## Paper
+Activity Frames: Deterministic Screen-Activity Compilation for Agent Memory and Replay
+arXiv:2608.05784 - https://arxiv.org/abs/2608.05784
+
+## Repo
+https://github.com/nossa-y/activity-frames

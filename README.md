@@ -4,12 +4,16 @@
 [![GitHub stars](https://img.shields.io/github/stars/nossa-y/activity-frames)](https://github.com/nossa-y/activity-frames/stargazers)
 [![Paper](https://img.shields.io/badge/paper-PDF-b31b1b)](https://github.com/nossa-y/activity-frames/blob/main/paper/activity-frames-paper.pdf)
 [![HackerNoon](https://img.shields.io/badge/HackerNoon-top%20story-00E980?logo=hackernoon&logoColor=white)](https://hackernoon.com/i-compiled-55-days-of-screen-activity-into-episodic-memory-for-my-ai-agent)
+[![Hugging Face](https://img.shields.io/badge/🤗%20HF-Papers-yellow)](https://huggingface.co/papers/2608.05784)
+[![PyPI](https://img.shields.io/pypi/v/activity-frames)](https://pypi.org/project/activity-frames/)
+[![Downloads](https://static.pepy.tech/badge/activity-frames)](https://pepy.tech/projects/activity-frames)
+[![Downloads/month](https://static.pepy.tech/badge/activity-frames/month)](https://pepy.tech/projects/activity-frames)
+[![GitHub stars](https://img.shields.io/github/stars/nossa-y/activity-frames)](https://github.com/nossa-y/activity-frames/stargazers)
 [![Python](https://img.shields.io/pypi/pyversions/activity-frames)](https://pypi.org/project/activity-frames/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-server-6E56CF)](https://modelcontextprotocol.io)
 [![tests](https://github.com/nossa-y/activity-frames/actions/workflows/test.yml/badge.svg)](https://github.com/nossa-y/activity-frames/actions/workflows/test.yml)
-[![PyPI](https://img.shields.io/pypi/v/activity-frames)](https://pypi.org/project/activity-frames/)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/website-usenocta.app-blue)](https://usenocta.app)
 
 **Turn your workday into structured workflows agents can execute.**
 
@@ -22,6 +26,8 @@ pip install activity-frames
 aframes record      # start capturing (local, audio off by default)
 aframes context     # your last 2 hours, agent-ready
 ```
+
+> **Want to go deeper?** [docs/mcp.md](docs/mcp.md) covers the six MCP tools, [docs/python.md](docs/python.md) the Python API, [docs/cli.md](docs/cli.md) every flag, [docs/troubleshooting.md](docs/troubleshooting.md) the errors you might actually hit. AI agent integrating this? [AGENTS.md](AGENTS.md) is written for you.
 
 ## What your agent sees
 
@@ -160,8 +166,40 @@ aframes mcp                      # MCP stdio server
 
 Run `aframes <cmd> --help` for the full flag set (`--db`, `--include-text`, `--layout`, ...).
 
+## Docs
+
+| | |
+|---|---|
+| [AGENTS.md](AGENTS.md) | Integration guide for AI agents (install, MCP tools, replay loop, cautions) |
+| [SPEC.md](SPEC.md) | The schema contract: measured vs inferred tiers |
+| [docs/mcp.md](docs/mcp.md) | MCP setup and the six tools in detail |
+| [docs/python.md](docs/python.md) | Python API reference |
+| [docs/cli.md](docs/cli.md) | Every command and flag |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Keyed by the actual error you see |
+| [research/](research/) | The cost instrument, measurements, and replay executor behind the paper |
+| [llms.txt](llms.txt) | Compressed repo map for LLM context windows |
+
 ## Status
 
 v0.2. Developed and tested on macOS (Apple Silicon); an Intel macOS engine build is published but less exercised - reports welcome. No prebuilt Linux engine yet: on Linux, run your own recorder and point `$AFRAMES_DB` at its database (the compiler itself is tested on Linux in CI). Entity parsers cover LinkedIn, GitHub, GitLab, Google (Search/Docs/Gmail/Maps/Meet/Calendar), YouTube, X, Instagram, Reddit, Luma, Partiful, Product Hunt, Vercel, Supabase, Stripe (dashboard), Discord, Slack, Notion, Figma, Linear, Stack Overflow, Calendly, Crunchbase, Atlassian (Jira/Confluence), ChatGPT/Claude, localhost; unknown sites fall back to a generic page reference - always total, never lossy. Issues and parser PRs welcome.
+
+## Paper
+
+**Activity Frames: Deterministic Screen-Activity Compilation for Agent Memory and Replay**  
+Nossa Iyamu, arXiv 2026
+
+[![arXiv](https://img.shields.io/badge/arXiv-2608.05784-b31b1b.svg)](https://arxiv.org/abs/2608.05784) [![Hugging Face](https://img.shields.io/badge/🤗%20HF-Papers-yellow)](https://huggingface.co/papers/2608.05784)
+
+```bibtex
+@misc{iyamu2026activityframes,
+  title={Activity Frames: Deterministic Screen-Activity Compilation for Agent Memory and Replay},
+  author={Nossa Iyamu},
+  year={2026},
+  eprint={2608.05784},
+  archivePrefix={arXiv},
+  primaryClass={cs.AI},
+  url={https://arxiv.org/abs/2608.05784}
+}
+```
 
 Built by [Nossa](https://github.com/nossa-y), maker of [Nocta](https://usenocta.app). MIT.

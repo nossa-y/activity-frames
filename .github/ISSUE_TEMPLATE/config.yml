@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question, idea, or anything private
+    url: https://usenocta.app
+    about: "For open-ended questions or anything you'd rather not post publicly, email n@usenocta.app - every email gets answered. Security reports: see SECURITY.md."
