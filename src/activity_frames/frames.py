@@ -292,8 +292,15 @@ def build_frames(
         inp = seg_stats.get(id(seg), InputStats())
         fids = seg.frame_ids
         frame_id_str = f"f-{idx:04d}"
-        if debug and seg.break_reason:
-            debug_reasons[frame_id_str] = seg.break_reason
+        if debug:
+            reasons = []
+            if seg.break_reason:
+                reasons.append(seg.break_reason)
+            for note in seg.debug_notes:
+                if note not in reasons:
+                    reasons.append(note)
+            if reasons:
+                debug_reasons[frame_id_str] = "; ".join(reasons)
         frames_out.append(
             ActivityFrame(
                 index=idx,

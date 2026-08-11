@@ -77,6 +77,7 @@ class Segment:
     frames: list[RawFrame] = field(default_factory=list)
     interruptions: list[Interruption] = field(default_factory=list)
     break_reason: str = ""        # why this segment started (debug)
+    debug_notes: list[str] = field(default_factory=list)  # quantified debug notes
 
     @property
     def key(self) -> tuple[str, str | None]:
@@ -150,12 +151,16 @@ def segments(
     for f in all_frames:
         by_device.setdefault(f.device, []).append(f)
 
+    # Only include device debug notes when the window spans multiple devices
+    include_device_note = len(by_device) > 1
+
     merged: list[Segment] = []
     for stream in by_device.values():
         merged.extend(
             _segment_stream(stream, dwell_cap=dwell_cap,
                             session_gap=session_gap,
-                            merge_flicker=merge_flicker)
+                            merge_flicker=merge_flicker,
+                            include_device_note=include_device_note)
         )
     merged.sort(key=lambda s: s.start_epoch)
     return merged
@@ -167,6 +172,7 @@ def _segment_stream(
     dwell_cap: float,
     session_gap: float,
     merge_flicker: float,
+    include_device_note: bool = False,
 ) -> list[Segment]:
     if not frames:
         return []
@@ -175,6 +181,7 @@ def _segment_stream(
     raw: list[Segment] = []
     cur: Segment | None = None
     prev_key: tuple[str, str | None] | None = None
+    last_gap: float | None = None
     for i, f in enumerate(frames):
         gap_to_next = (
             frames[i + 1].epoch - f.epoch if i + 1 < len(frames) else None
@@ -187,7 +194,10 @@ def _segment_stream(
             if cur is None and prev_key is None:
                 reason = "start"
             elif cur is None and prev_key is not None:
-                reason = "session_gap"
+                if last_gap is not None:
+                    reason = f"session_gap: {int(round(last_gap))}s > {int(session_gap)}s"
+                else:
+                    reason = "session_gap"
             else:
                 reason = "context_switch"
             cur = Segment(
@@ -195,12 +205,21 @@ def _segment_stream(
                 start_epoch=f.epoch, end_epoch=f.epoch,
                 break_reason=reason,
             )
+            if include_device_note and f.device:
+                cur.debug_notes.append(f"device: {f.device}")
             raw.append(cur)
         cur.frames.append(f)
         cur.end_epoch = f.epoch
+
+        if gap_to_next is not None and gap_to_next > dwell_cap and gap_to_next <= session_gap:
+            note = f"dwell capped: {int(dwell_cap)}s"
+            if note not in cur.debug_notes:
+                cur.debug_notes.append(note)
+
         if gap_to_next is not None and gap_to_next <= session_gap:
             cur.active_seconds += dwell
         if gap_to_next is not None and gap_to_next > session_gap:
+            last_gap = gap_to_next
             prev_key = key
             cur = None  # session break: next frame starts a new segment
 
@@ -221,19 +240,28 @@ def _segment_stream(
             and raw[i + 2].start_epoch - raw[i + 1].end_epoch <= session_gap
         ):
             flicker, cont = raw[i + 1], raw[i + 2]
+            flicker_span = int(round(flicker.wall_seconds()))
+            flicker_seconds = round(flicker.active_seconds or flicker.wall_seconds() or 1.0, 1)
+            flicker_name = flicker.app + (f" ({flicker.domain})" if flicker.domain else "")
+            seg.debug_notes.append(
+                f"merged flicker: {flicker_name} {flicker_span}s <= {int(merge_flicker)}s"
+            )
             # The flicker's time is recorded on the interruption, NOT
             # added to the host segment's active time: active_seconds
             # stays honest about time spent in THIS context.
             seg.interruptions.append(
                 Interruption(
                     app=flicker.app, domain=flicker.domain,
-                    seconds=round(flicker.active_seconds or flicker.wall_seconds() or 1.0, 1),
+                    seconds=flicker_seconds,
                 )
             )
             seg.frames.extend(cont.frames)
             seg.active_seconds += cont.active_seconds
             seg.end_epoch = cont.end_epoch
             seg.interruptions.extend(cont.interruptions)
+            for note in cont.debug_notes:
+                if note not in seg.debug_notes:
+                    seg.debug_notes.append(note)
             i += 2
         merged.append(seg)
         i += 1

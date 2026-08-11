@@ -116,3 +116,37 @@ def test_flicker_never_merges_across_session_gap(tmp_path):
     # No Chrome segment may span the gap
     for s in chrome_segs:
         assert s.wall_seconds() < 600
+
+
+def test_device_debug_notes_only_emitted_when_multi_device(tmp_path):
+    # 1. Multi-monitor DB: contains device: monitor_1 and device: monitor_2
+    db_multi = _two_monitor_db(tmp_path)
+    doc_multi = build_frames(db_multi, "2026-07-04T00:00:00", "2026-07-05T00:00:00", debug=True)
+    reasons_multi = list(doc_multi.to_dict()["_debug"]["sessionization"].values())
+    assert any("device: monitor_1" in r for r in reasons_multi)
+    assert any("device: monitor_2" in r for r in reasons_multi)
+
+    # 2. Single-monitor DB: device: note should NOT be present
+    path_single = tmp_path / "single.sqlite"
+    conn = sqlite3.connect(path_single)
+    conn.executescript(
+        """
+        CREATE TABLE frames (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TIMESTAMP NOT NULL,
+            app_name TEXT, window_name TEXT, focused BOOLEAN,
+            browser_url TEXT, device_name TEXT NOT NULL DEFAULT 'monitor_1'
+        );
+        """
+    )
+    conn.execute(
+        "INSERT INTO frames (timestamp, app_name, focused) VALUES ('2026-07-04T10:00:00.000000+00:00', 'Chrome', 1)"
+    )
+    conn.commit()
+    conn.close()
+
+    db_single = Database(str(path_single))
+    doc_single = build_frames(db_single, "2026-07-04T00:00:00", "2026-07-05T00:00:00", debug=True)
+    reasons_single = list(doc_single.to_dict()["_debug"]["sessionization"].values())
+    assert not any("device:" in r for r in reasons_single)
+
