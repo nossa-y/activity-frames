@@ -52,16 +52,23 @@ activity-frames compiles those instants into activity frames:
 And into a compact context block for any system prompt:
 
 ```
-USER ACTIVITY (2026-07-04, local time; measured from screen capture, no interpretation):
-coverage: 09:12-20:42, 342 active min, 11 apps
-away: 12:30-13:15 (45m)
-away: 18:47-20:24 (97m)
-- 09:12-09:58 Cursor (46.2m): main.py - api
-- 10:01-10:44 Google Chrome/github.com (41.3m): pull_request:acme/api#412; code:acme/api
-- 20:24-20:42 Google Chrome/linkedin.com (18.0m): people_search:cto berlin x2; profile:john-doe; company:acme-ai; typed ~214 chars
+USER ACTIVITY (2026-08-10, local time; measured from screen capture, no interpretation):
+coverage: 10:29-22:55, 529 active min, 15 apps
+away: 13:02-14:39 (97m)
+- 10:54-11:23 Google Chrome/app.cal.com (28.7m): dashboard:video x59
+- 12:49-12:52 cmux (2.7m): ⠂ Build nocta-recorder ground-up screen recorder
+- 12:52-13:02 Google Chrome/calendar.google.com (9.7m): calendar x20
+- 20:53-20:56 Google Chrome/github.com (3.3m): user:bethvourc x5; repo:nossa-y/activity-frames x2
+- 20:56-21:01 Google Chrome/hackernoon.com (5.2m): page:i-compiled-55-days-of-screen-activity-into-episodic-memory-for-my-ai-agent x12
 ```
 
-Drop that into a prompt and your agent knows your day. A full day compiles in under a second and costs zero tokens.
+That is a real day of mine (excerpt; the full block has 44 frames). It compiles to 1,371 tokens; the raw snapshot rows for the same day are 247,563. Compiles in under a second, costs zero tokens, no LLM in the loop.
+
+Drop it into a prompt and your agent knows your day - ask "what was that article I had open around 9pm?" and it answers in one line, off the block alone:
+
+![aframes demo: compile a real day, ask the agent, get a one-line answer](docs/assets/demo.gif)
+
+*Real exchange, MCP disabled - the answer comes from the compiled block only.*
 
 ## Workflows agents can execute
 
