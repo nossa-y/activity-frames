@@ -16,6 +16,7 @@ Every URL maps to something; typing is never lossy.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from urllib.parse import parse_qs, unquote, urlsplit
 
@@ -611,3 +612,71 @@ _SITE_PARSERS = {
     "localhost": _localhost,
     "127.0.0.1": _localhost,
 }
+
+
+# ---------------------------------------------------------------------------
+# Native-app window titles
+#
+# Browser frames carry a URL; native developer tools (VS Code, Cursor) carry
+# only a window *title*, which nonetheless encodes the file, project, and branch
+# a developer is working on. These parsers type that title the same way
+# _SITE_PARSERS types a URL — deterministically, with no guessing.
+# ---------------------------------------------------------------------------
+
+# VS Code / Cursor titles look like one of:
+#   "main.py — activity-frames [main] — Visual Studio Code"   (macOS em-dash default)
+#   "main.py - activity-frames - Visual Studio Code"          (hyphen-separator configs)
+# The separator is always surrounded by whitespace. Requiring that whitespace is
+# what lets us tell a real separator from the hyphens inside file names
+# ("my-file.py") and project names ("activity-frames") — a bare "-" split would
+# mangle both.
+_UNSAVED_MARK = "●"  # ● — VS Code prefixes an unsaved file with this
+_VSCODE_TITLE_RE = re.compile(
+    r"^(?P<file>.+?)"
+    r"\s+[—-]\s+"                       # separator (em-dash or hyphen), space-padded
+    r"(?P<project>.+?)"
+    r"(?:\s+\[(?P<branch>[^\]]+)\])?"   # optional "[branch]"
+    r"\s+[—-]\s+"
+    r"(?:Visual Studio Code|Cursor)$",
+    re.UNICODE,
+)
+
+
+def _parse_vscode_window(app: str, window: str) -> PageRef | None:
+    m = _VSCODE_TITLE_RE.match(window.strip())
+    if not m:
+        return None  # unrecognized layout — let the raw title stand, never guess
+    file = m.group("file").lstrip(_UNSAVED_MARK).strip()
+    project = m.group("project").strip()
+    branch = m.group("branch")
+    if not project:
+        return None
+    entity = f"{project}/{file}" if file and file != project else project
+    if branch:
+        entity = f"{entity}@{branch}"
+    return PageRef(kind="repository_file", domain=app.lower().replace(" ", "_"), entity=entity)
+
+
+_APP_WINDOW_PARSERS = {
+    "Visual Studio Code": _parse_vscode_window,
+    "Cursor": _parse_vscode_window,
+}
+
+
+def parse_window_title(app: str, window: str) -> PageRef | None:
+    """Type a native-app window title into a PageRef, or None if unrecognized.
+
+    Deterministic and total: only apps with a registered parser are handled;
+    everything else (and any parse failure) returns None, so the raw window
+    title stands rather than being guessed at.
+    """
+    if not app or not window:
+        return None
+    parser = _APP_WINDOW_PARSERS.get(app)
+    if parser is None:
+        return None
+    try:
+        return parser(app, window)
+    except Exception:
+        # Totality guarantee: a parser bug must never break frame compilation.
+        return None

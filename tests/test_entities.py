@@ -1,4 +1,4 @@
-from activity_frames.entities import parse_url
+from activity_frames.entities import parse_url, parse_window_title
 
 
 def test_linkedin_profile():
@@ -323,3 +323,54 @@ def test_atlassian_confluence_page():
 def test_atlassian_unknown_path_falls_through():
     unknown = parse_url("https://acme.atlassian.net/plugins/servlet/ac")
     assert (unknown.kind, unknown.entity) == ("page", "plugins")
+
+
+# --- native-app window titles: VS Code / Cursor (#38) -------------------------
+
+def test_window_vscode_emdash_with_branch():
+    r = parse_window_title(
+        "Visual Studio Code", "main.py — activity-frames [main] — Visual Studio Code"
+    )
+    assert (r.kind, r.entity) == ("repository_file", "activity-frames/main.py@main")
+
+
+def test_window_vscode_hyphen_separator():
+    r = parse_window_title("Visual Studio Code", "app.py - myproject - Visual Studio Code")
+    assert (r.kind, r.entity) == ("repository_file", "myproject/app.py")
+
+
+def test_window_cursor_same_format():
+    r = parse_window_title("Cursor", "main.py — activity-frames [main] — Cursor")
+    assert (r.kind, r.entity) == ("repository_file", "activity-frames/main.py@main")
+
+
+def test_window_strips_unsaved_dot_indicator():
+    r = parse_window_title(
+        "Visual Studio Code", "● main.py — activity-frames — Visual Studio Code"
+    )
+    assert r.entity == "activity-frames/main.py"
+
+
+def test_window_hyphenated_names_not_mis_split():
+    # Regression: a bare "-" split would mangle "my-file.py" / "cool-project".
+    r = parse_window_title(
+        "Visual Studio Code", "my-file.py - cool-project - Visual Studio Code"
+    )
+    assert (r.kind, r.entity) == ("repository_file", "cool-project/my-file.py")
+
+
+def test_window_unrecognized_title_returns_none():
+    assert parse_window_title("Visual Studio Code", "just some random window title") is None
+
+
+def test_window_unknown_app_returns_none():
+    assert parse_window_title("Slack", "main.py — activity-frames — Visual Studio Code") is None
+
+
+def test_window_never_raises_on_odd_input():
+    odd = ["", "   ", "—", "-", " — Visual Studio Code", "a — b — c", "a—b—Cursor", "x" * 5000]
+    for w in odd:
+        result = parse_window_title("Visual Studio Code", w)  # must not raise
+        assert result is None or result.kind == "repository_file"
+    assert parse_window_title("", "anything") is None
+    assert parse_window_title("Visual Studio Code", "") is None
