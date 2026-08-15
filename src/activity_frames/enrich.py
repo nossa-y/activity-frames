@@ -303,10 +303,14 @@ def _resolve_click(
         return _clean(best[0]), "exact"
 
     # Tolerance: expanded boxes (ring in logical pixels, normalized here).
-    tol_n = _TOL_PX / screen_w
+    # Per axis: xn is normalized by width and yn by height, so one shared
+    # screen_w-based tolerance would shrink the vertical ring by the display
+    # aspect ratio (40px -> 26px on 1728x1117).
+    tol_x = _TOL_PX / screen_w
+    tol_y = _TOL_PX / screen_h
     tol = None
     for text, l, t, w, h in elems:
-        if l - tol_n <= xn <= l + w + tol_n and t - tol_n <= yn <= t + h + tol_n:
+        if l - tol_x <= xn <= l + w + tol_x and t - tol_y <= yn <= t + h + tol_y:
             area = w * h
             if tol is None or area < tol[1]:
                 tol = (text, area)
