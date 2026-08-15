@@ -15,7 +15,23 @@ from ._time import local_day_string, parse_epoch
 from .db import Database
 
 MIN_FREQUENCY = 3
-_GENERIC_ELEMENTS = {"scroll area", "group", "cell", "text", "text field"}
+
+# Elements the recorder could not meaningfully name. Clicking one says nothing
+# about what the user did, so no detector should surface it. This set is the
+# single source of truth: _is_generic() is the check, and the SQL form below is
+# derived from it rather than retyped, so the two cannot drift apart.
+_GENERIC_ELEMENTS = frozenset({"scroll area", "group", "cell", "text", "text field"})
+
+# For excluding inside a query, where filtering early keeps generic rows from
+# consuming slots in a LIMIT. Compared against lower(trim(...)) so it matches
+# the same names _is_generic() does.
+_GENERIC_SQL = ",".join("?" * len(_GENERIC_ELEMENTS))
+_GENERIC_PARAMS = tuple(sorted(_GENERIC_ELEMENTS))
+
+
+def _is_generic(name: str | None) -> bool:
+    """True for an element name that carries no information about the action."""
+    return (name or "").strip().lower() in _GENERIC_ELEMENTS
 
 
 @dataclass
@@ -47,17 +63,17 @@ def detect(db: Database, start_utc: str, end_utc: str,
 
 def repeated_clicks(db: Database, start: str, end: str) -> list[WorkPattern]:
     rows = db.rows(
-        """
+        f"""
         SELECT element_name, element_role, COUNT(*) as cnt FROM ui_events
         WHERE timestamp BETWEEN ? AND ?
           AND event_type = 'click'
           AND element_name IS NOT NULL AND element_name != ''
-          AND element_name NOT IN ('scroll area','group','cell','text','text field')
+          AND lower(trim(element_name)) NOT IN ({_GENERIC_SQL})
         GROUP BY element_name, element_role
         HAVING cnt >= ?
         ORDER BY cnt DESC LIMIT 20
         """,
-        (start, end, MIN_FREQUENCY),
+        (start, end, *_GENERIC_PARAMS, MIN_FREQUENCY),
     )
     return [
         WorkPattern(
@@ -135,8 +151,12 @@ def action_sequences(db: Database, start: str, end: str) -> list[WorkPattern]:
         return []
     actions = []
     for name, role in rows:
-        name = (name or "").strip()
-        actions.append(f"[{role or 'element'}]" if name in _GENERIC_ELEMENTS else name)
+        # A generic element keeps its slot -- the click did happen -- but stands
+        # in as its role, so the sequence reads as a shape rather than a name
+        # the recorder never actually resolved.
+        actions.append(
+            f"[{role or 'element'}]" if _is_generic(name) else (name or "").strip()
+        )
 
     bigrams: dict[str, int] = {}
     trigrams: dict[str, int] = {}
@@ -230,7 +250,6 @@ def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
         WHERE timestamp BETWEEN ? AND ?
           AND event_type = 'click'
           AND element_name IS NOT NULL AND element_name != ''
-          AND element_name NOT IN ('scroll area','group')
         ORDER BY element_name, timestamp
         """,
         (start, end),
@@ -242,7 +261,7 @@ def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
     # a habit out of activity that only ever happened once.
     per_day: dict[tuple[str, str], int] = {}
     for ts, name in rows:
-        if not name:
+        if not name or _is_generic(name):
             continue
         epoch = parse_epoch(ts or "")
         if epoch <= 0:
