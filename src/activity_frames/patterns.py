@@ -8,8 +8,10 @@ only when it actually repeated.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
+from ._time import local_day_string, parse_epoch
 from .db import Database
 
 MIN_FREQUENCY = 3
@@ -218,30 +220,48 @@ def repeated_text(db: Database, start: str, end: str) -> list[WorkPattern]:
     return out[:10]
 
 
+MIN_CLICKS_PER_DAY = 3   # a day only counts toward a habit above this floor
+
+
 def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
     rows = db.rows(
         """
-        SELECT date(timestamp) as day, element_name, COUNT(*) as cnt FROM ui_events
+        SELECT timestamp, element_name FROM ui_events
         WHERE timestamp BETWEEN ? AND ?
           AND event_type = 'click'
           AND element_name IS NOT NULL AND element_name != ''
           AND element_name NOT IN ('scroll area','group')
-        GROUP BY day, element_name
-        HAVING cnt >= 3
-        ORDER BY element_name, day
+        ORDER BY element_name, timestamp
         """,
         (start, end),
     )
-    habits: dict[str, dict] = {}
-    for _day, name, cnt in rows:
+
+    # Bucket by LOCAL calendar day. SQLite's date() buckets by UTC, so for a
+    # user far enough from UTC one local day straddles a UTC boundary and
+    # counted as two -- and since a habit is "days >= 2" below, that reported
+    # a habit out of activity that only ever happened once.
+    per_day: dict[tuple[str, str], int] = {}
+    for ts, name in rows:
         if not name:
+            continue
+        epoch = parse_epoch(ts or "")
+        if epoch <= 0:
+            continue
+        day = local_day_string(datetime.fromtimestamp(epoch, tz=timezone.utc))
+        per_day[(name, day)] = per_day.get((name, day), 0) + 1
+
+    habits: dict[str, dict] = {}
+    for (name, _day), cnt in per_day.items():
+        if cnt < MIN_CLICKS_PER_DAY:
             continue
         h = habits.setdefault(name, {"days": 0, "total": 0})
         h["days"] += 1
-        h["total"] += int(cnt)
+        h["total"] += cnt
     keep = sorted(
         ((n, h) for n, h in habits.items() if h["days"] >= 2),
-        key=lambda nh: -nh[1]["total"],
+        # name breaks ties so output stays deterministic regardless of the
+        # order rows arrive in (the SQL ORDER BY no longer does it for us).
+        key=lambda nh: (-nh[1]["total"], nh[0]),
     )
     return [
         WorkPattern(
