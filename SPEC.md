@@ -50,7 +50,11 @@ coverage:
   distinct_apps: 11
   gaps:                      # periods >= 5 min with no capture
     - {start: "12:30", end: "13:15", minutes: 45}
+  active_minutes_by_hour:    # local hour -> active minutes in that hour
+    {9: 48, 10: 60, 11: 37}  # hours with no capture are absent, not zero
 ```
+
+`active_minutes_by_hour` partitions the same distinct minutes counted by `active_minutes`, so its values sum to that total. An absent hour means nothing was captured then, which is not the same as an hour the user spent idle - the `gaps` list is what distinguishes them.
 
 ## 4. Frames
 

@@ -44,6 +44,30 @@ def test_coverage_gap_detected(fixture_db, day_window):
     assert cov.coverage_pct <= 100
 
 
+def test_hour_histogram_partitions_active_minutes(fixture_db, day_window):
+    """Every active minute lands in exactly one local hour, so the histogram
+    sums to active_minutes rather than double-counting across bucket edges."""
+    cov = coverage(fixture_db, *day_window)
+    assert cov.hour_histogram, "fixture spans real hours"
+    assert sum(cov.hour_histogram.values()) == cov.active_minutes
+    assert all(0 <= hour <= 23 for hour in cov.hour_histogram)
+    assert all(minutes > 0 for minutes in cov.hour_histogram.values())
+
+
+def test_hour_histogram_reaches_the_document(fixture_db, day_window):
+    """coverage() has always measured this; it is now emitted rather than
+    recomputed downstream from every frame."""
+    doc = build_frames(fixture_db, *day_window)
+    by_hour = doc.to_dict()["coverage"]["active_minutes_by_hour"]
+    assert by_hour == coverage(fixture_db, *day_window).hour_histogram
+    assert sum(by_hour.values()) == doc.coverage["active_minutes"]
+
+
+def test_hour_histogram_empty_window_is_empty(fixture_db):
+    doc = build_frames(fixture_db, "2020-01-01T00:00:00", "2020-01-02T00:00:00")
+    assert doc.to_dict()["coverage"]["active_minutes_by_hour"] == {}
+
+
 def test_app_ledger_ordering_and_sessions(fixture_db, day_window):
     ledger = app_ledger(fixture_db, *day_window)
     assert ledger[0].app in ("Google Chrome", "Cursor")

@@ -343,6 +343,10 @@ def build_frames(
                 }
                 for g in cov.gaps
             ],
+            # Local hour -> active minutes. Already measured by coverage();
+            # emitting it lets a consumer see WHEN the active minutes fell
+            # without re-deriving the shape from every frame.
+            "active_minutes_by_hour": cov.hour_histogram,
         },
         frames=frames_out,
         blind_spots=BLIND_SPOTS,
