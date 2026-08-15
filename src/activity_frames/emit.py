@@ -57,6 +57,16 @@ def to_markdown(doc: ActivityDocument, *, include_input_text: bool = False) -> s
         lines.append("")
         gaps = ", ".join(f"{g['start']}-{g['end']} ({g['minutes']}m)" for g in cov["gaps"])
         lines.append(f"**Away:** {gaps}")
+    # The table above is filtered by min_minutes; say so, as the JSON and
+    # context-block emitters already do. A truncated view that does not
+    # disclose the truncation reads as the whole day.
+    omitted = d.get("omitted")
+    if omitted:
+        lines.append("")
+        lines.append(
+            f"**Omitted:** {omitted['below_min_minutes']} frames under "
+            f"{omitted['min_minutes']} min"
+        )
     return "\n".join(lines)
 
 
