@@ -17,11 +17,13 @@ All math is deterministic and documented:
 """
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
 
 from ._time import parse_epoch
 from .db import Database
+from .events import Event
 
 DWELL_CAP = 90.0        # seconds; max credit for one frame
 SESSION_GAP = 300.0     # seconds; larger gap = user away / new session
@@ -127,6 +129,130 @@ def load_frames(db: Database, start_utc: str, end_utc: str) -> list[RawFrame]:
     return out
 
 
+def _event_matches(
+    event: Event,
+    *,
+    forced_event_types: Collection[str],
+    force_priority: int | None,
+) -> bool:
+    if event.event_type in forced_event_types:
+        return True
+    if force_priority is not None and event.priority >= force_priority:
+        return True
+    return False
+
+
+def _segment_active_seconds(frames: list[RawFrame], *, dwell_cap: float, session_gap: float) -> float:
+    total = 0.0
+    for i, f in enumerate(frames[:-1]):
+        gap = frames[i + 1].epoch - f.epoch
+        if gap <= 0:
+            continue
+        if gap > session_gap:
+            continue
+        total += min(gap, dwell_cap)
+    return total
+
+
+def _split_segment_by_event(
+    seg: Segment,
+    event: Event,
+    *,
+    dwell_cap: float,
+    session_gap: float,
+) -> list[Segment]:
+    if not seg.frames or len(seg.frames) < 2:
+        return [seg]
+
+    # Select the nearest inter-frame boundary, not an invented event timestamp.
+    # The event is mapped to the midpoint between the two closest captured
+    # frames in the segment, which preserves the underlying capture stream.
+    boundary_index = min(
+        range(len(seg.frames) - 1),
+        key=lambda i: (
+            abs(((seg.frames[i].epoch + seg.frames[i + 1].epoch) / 2.0) - event.timestamp),
+            i,
+        ),
+    )
+    if boundary_index <= 0 or boundary_index >= len(seg.frames) - 1:
+        return [seg]
+
+    left_frames = seg.frames[: boundary_index + 1]
+    right_frames = seg.frames[boundary_index + 1 :]
+    if not left_frames or not right_frames:
+        return [seg]
+
+    left = Segment(
+        app=seg.app,
+        domain=seg.domain,
+        start_epoch=seg.start_epoch,
+        end_epoch=left_frames[-1].epoch,
+        active_seconds=_segment_active_seconds(left_frames, dwell_cap=dwell_cap, session_gap=session_gap),
+        frames=list(left_frames),
+        interruptions=list(seg.interruptions),
+        break_reason=seg.break_reason,
+        debug_notes=list(seg.debug_notes),
+    )
+    right = Segment(
+        app=seg.app,
+        domain=seg.domain,
+        start_epoch=right_frames[0].epoch,
+        end_epoch=seg.end_epoch,
+        active_seconds=_segment_active_seconds(right_frames, dwell_cap=dwell_cap, session_gap=session_gap),
+        frames=list(right_frames),
+        interruptions=list(seg.interruptions),
+        break_reason=f"event_boundary: {event.event_type}",
+        debug_notes=list(seg.debug_notes),
+    )
+    left.debug_notes.append(f"event boundary: {event.event_type} at {event.timestamp}")
+    right.debug_notes.append(f"event boundary: {event.event_type} at {event.timestamp}")
+    return [left, right]
+
+
+def _apply_event_boundaries(
+    segs: Sequence[Segment],
+    events: Sequence[Event] = (),
+    *,
+    forced_event_types: Collection[str] = (),
+    force_priority: int | None = None,
+    dwell_cap: float = DWELL_CAP,
+    session_gap: float = SESSION_GAP,
+) -> list[Segment]:
+    """Deterministically split existing segments at authoritative events.
+
+    Events are opt-in and supplied by callers. The implementation never
+    invents a frame that is not in the capture stream; it only splits
+    around the nearest captured boundary inside the relevant segment.
+    """
+    if not segs or not events:
+        return list(segs)
+
+    relevant = [
+        e for e in events
+        if _event_matches(e, forced_event_types=forced_event_types, force_priority=force_priority)
+    ]
+    if not relevant:
+        return list(segs)
+
+    current = list(segs)
+    for event in sorted(relevant, key=lambda e: (e.timestamp, e.event_type, e.source, e.priority)):
+        next_segs: list[Segment] = []
+        for seg in current:
+            if not seg.frames:
+                next_segs.append(seg)
+                continue
+            if event.timestamp < seg.start_epoch or event.timestamp > seg.end_epoch:
+                next_segs.append(seg)
+                continue
+            split = _split_segment_by_event(seg, event, dwell_cap=dwell_cap, session_gap=session_gap)
+            if len(split) == 2 and split[0] is not seg and split[1] is not seg:
+                next_segs.extend(split)
+            else:
+                next_segs.append(seg)
+        current = next_segs
+    return current
+
+
 def segments(
     db: Database,
     start_utc: str,
@@ -135,6 +261,9 @@ def segments(
     dwell_cap: float = DWELL_CAP,
     session_gap: float = SESSION_GAP,
     merge_flicker: float = MERGE_FLICKER,
+    events: Sequence[Event] = (),
+    forced_event_types: Collection[str] = (),
+    force_priority: int | None = None,
 ) -> list[Segment]:
     """Chronological (app, site) segments for a UTC window.
 
@@ -163,7 +292,16 @@ def segments(
                             include_device_note=include_device_note)
         )
     merged.sort(key=lambda s: s.start_epoch)
-    return merged
+    if not events and not forced_event_types and force_priority is None:
+        return merged
+    return _apply_event_boundaries(
+        merged,
+        events,
+        forced_event_types=forced_event_types,
+        force_priority=force_priority,
+        dwell_cap=dwell_cap,
+        session_gap=session_gap,
+    )
 
 
 def _segment_stream(
