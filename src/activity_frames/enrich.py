@@ -188,6 +188,14 @@ def enrich_events(
 
     for ts, etype, x, y, elem_name, elem_role, text_content, event_app in event_rows:
         epoch = parse_epoch(ts or "")
+        if epoch <= 0:
+            # Same guard the frame rows get above. The SQL window is a string
+            # comparison, so a partly-malformed stamp ("2026-07-04T99:99:99")
+            # passes it and lands here as 0.0 -- and nearest_index would then
+            # attribute the event to the window's FIRST frame: a real frame,
+            # wrong answer, reported at whatever confidence the label implies.
+            # An event we cannot place in time has no honest home.
+            continue
         etype = etype or ""
 
         # 1. Authoritative context from the nearest frame.
