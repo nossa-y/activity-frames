@@ -208,4 +208,4 @@ Nossa Iyamu, arXiv 2026
 }
 ```
 
-Built by [Nossa](https://github.com/nossa-y), maker of [Nocta](https://usenocta.app). MIT.
+Built by [Nossa Iyamu](https://github.com/nossa-y), maker of [Nocta](https://usenocta.app). MIT.
