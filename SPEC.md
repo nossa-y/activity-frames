@@ -111,6 +111,20 @@ Producers may offer a `min_minutes` filter for consumer convenience. Filtered-ou
 
 Each monitor records its own frame stream (`device_name`). Segmentation runs per device, so simultaneous monitors do not fragment each other's frames; the document lists all devices' frames sorted by start time, which means frames MAY overlap in time. Input events are assigned to exactly one containing segment (ties across devices resolved by the nearest captured frame), so input volume is never double-counted. A consequence to disclose: the same app visible on two monitors at once earns active time on both.
 
+### 5.6 Event-aware segmentation (opt-in)
+
+Consumers may optionally provide authoritative event metadata from external systems such as `git.merge`, `pr.approved`, or `deploy.success`. These are not inferred from screen activity and are supplied explicitly by callers. The event type is a simple string; the package does not classify, rank, or guess event meaning.
+
+An `Event` object is a minimal record:
+
+```python
+Event(event_type="git.merge", timestamp=1700.0, source="ci", priority=10)
+```
+
+When a caller passes `events` alongside the normal segmentation call, the existing context/session segmentation remains the base pipeline. After those segments are formed, the optional event boundary step may split an existing segment only at an observed boundary between consecutive captured frames. It never invents a frame at the event timestamp. When an event falls between two captured frames, the implementation chooses the closer inter-frame midpoint as the deterministic split point; ties are resolved in timestamp order and then by event index. This keeps the result reproducible for identical inputs.
+
+The event-aware layer is intentionally opt-in. If `events=()` and `forced_event_types=()` and `force_priority is None`, the output is identical to the old implementation. `forced_event_types` allows splitting only on specific event types; `force_priority` allows splitting on any externally supplied event whose `priority` is at least the threshold. Both filters are additive: an event qualifies when it matches either a forced type or the priority threshold. Events outside all segments are ignored safely.
+
 ## 6. Blind spots
 
 Every document carries a `blind_spots` list: plain-language statements of what the capture pipeline systematically cannot see (e.g. "browser URLs are only captured for browser apps"). Producers must not remove entries to make output look more complete.

@@ -18,6 +18,7 @@ from .communications import COMM_KINDS, CommSurface, TitleItem
 from .communications import surfaces as comm_surfaces
 from .db import Database, RecorderDBNotFound, find_default_db
 from .emit import context_block, to_json, to_markdown, to_yaml
+from .events import Event
 from .entities import PageRef, parse_url
 from .frames import (
     SCHEMA_VERSION,
@@ -39,6 +40,7 @@ __all__ = [
     "CommSurface",
     "Coverage",
     "Database",
+    "Event",
     "PageRef",
     "RecorderDBNotFound",
     "SCHEMA_VERSION",

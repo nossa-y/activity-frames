@@ -188,11 +188,17 @@ def build_frames(
     session_gap: float = SESSION_GAP,
     merge_flicker: float = MERGE_FLICKER,
     debug: bool = False,
+    events=(),
+    forced_event_types=(),
+    force_priority: int | None = None,
 ) -> ActivityDocument:
     """Compile a UTC window of recorder data into an ActivityDocument."""
     segs = compute_segments(
         db, start_utc, end_utc,
         dwell_cap=dwell_cap, session_gap=session_gap, merge_flicker=merge_flicker,
+        events=events,
+        forced_event_types=forced_event_types,
+        force_priority=force_priority,
     )
     cov = compute_coverage(db, start_utc, end_utc, session_gap=session_gap)
 
