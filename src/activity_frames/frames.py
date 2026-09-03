@@ -21,7 +21,7 @@ from ._time import (
     now_utc_string,
 )
 from .db import Database
-from .entities import parse_url
+from .entities import parse_url, parse_window_title
 from .enrich import decode_text
 from .sessionize import (
     DWELL_CAP,
@@ -152,9 +152,15 @@ def _pages_for_segment(seg: Segment) -> list[PageView]:
     views: list[PageView] = []
     index: dict[tuple[str, str | None], PageView] = {}  # O(1) duplicate lookup
     for f in seg.frames:
-        if not f.url:
+        if f.url:
+            ref = parse_url(f.url)
+        elif f.window:
+            # Native apps (VS Code, Cursor) carry no URL — type their window title.
+            ref = parse_window_title(f.app, f.window)
+        else:
+            ref = None
+        if ref is None:
             continue
-        ref = parse_url(f.url)
         key = (ref.kind, ref.entity)
         existing = index.get(key)
         if existing is not None:
