@@ -6,6 +6,12 @@ versioning. The document schema version is tracked separately in [SPEC.md](SPEC.
 
 ## [Unreleased]
 
+### Added
+- `coverage.active_minutes_by_hour`: local hour -> active minutes, additive to
+  the schema. `coverage()` already measured this histogram; it is now emitted
+  rather than discarded, so consumers (including `get_day_summary`) can see
+  when the active minutes fell without re-deriving the shape from every frame.
+
 ### Fixed
 - Revisit-then-dwell page counts: `_pages_for_segment()` credited dwell frames
   to the last-appended page instead of the current page (A,B,A,A counted
