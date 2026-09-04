@@ -74,6 +74,34 @@ def test_emitters_produce_output(fixture_db, day_window):
     assert "linkedin.com" in ctx
 
 
+def test_every_emitter_discloses_frames_dropped_by_min_minutes(fixture_db, day_window):
+    """A filtered view must say it is filtered, in every format.
+
+    --min-minutes defaults to 0.5, so the default CLI invocation is already
+    filtering; a markdown table that omits the disclosure reads as the whole
+    day. JSON and the context block have always said so.
+    """
+    # The fixture's frames run 14.0 / 19.7 / 24.0 min, so a 15 min floor drops
+    # exactly one and leaves a non-empty table to disclose against.
+    doc = _doc(fixture_db, day_window, min_minutes=15.0)
+    assert doc.omitted_below_min == 1
+    assert doc.frames, "the surviving frames still render"
+
+    assert json.loads(to_json(doc))["omitted"] == {
+        "below_min_minutes": 1,
+        "min_minutes": 15.0,
+    }
+    assert "(+1 brief frames under 15.0 min omitted)" in context_block(doc)
+    assert "**Omitted:** 1 frames under 15.0 min" in to_markdown(doc)
+
+
+def test_unfiltered_markdown_has_no_omitted_footer(fixture_db, day_window):
+    """Nothing dropped, nothing claimed."""
+    doc = _doc(fixture_db, day_window, min_minutes=0.0)
+    assert doc.omitted_below_min == 0
+    assert "**Omitted:**" not in to_markdown(doc)
+
+
 def test_context_block_respects_max_frames(fixture_db, day_window):
     doc = _doc(fixture_db, day_window)
     ctx = context_block(doc, max_frames=1)
