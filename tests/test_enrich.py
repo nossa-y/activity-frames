@@ -1,4 +1,13 @@
-from activity_frames.enrich import decode_text, enrich_events, nearest_index
+import sqlite3
+
+from activity_frames.db import Database
+from activity_frames.enrich import (
+    _TOL_PX,
+    _resolve_click,
+    decode_text,
+    enrich_events,
+    nearest_index,
+)
 
 
 def test_layout_decode_azerty():
@@ -73,6 +82,65 @@ def test_rescue_respects_window(fixture_db, day_window):
         and e.label == "Follow"
     ]
     assert not at_15
+
+
+def _one_element_db(tmp_path, *, left, top, width, height):
+    """One frame carrying one element box, for click-geometry tests."""
+    path = tmp_path / "elements.sqlite"
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE frames (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TIMESTAMP NOT NULL, app_name TEXT, window_name TEXT,
+            focused BOOLEAN, browser_url TEXT);
+        CREATE TABLE elements (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            frame_id INTEGER NOT NULL, source TEXT NOT NULL DEFAULT 'accessibility',
+            role TEXT NOT NULL DEFAULT 'AXButton', text TEXT,
+            left_bound REAL, top_bound REAL, width_bound REAL, height_bound REAL);
+        """
+    )
+    conn.execute(
+        "INSERT INTO frames (timestamp, app_name, window_name, focused)"
+        " VALUES ('2026-07-04T17:00:00.000000+00:00', 'App', 'W', 1)"
+    )
+    conn.execute(
+        "INSERT INTO elements (frame_id, text, left_bound, top_bound,"
+        " width_bound, height_bound) VALUES (1, 'Btn', ?, ?, ?, ?)",
+        (left, top, width, height),
+    )
+    conn.commit()
+    conn.close()
+    return Database(str(path))
+
+
+def test_tolerance_ring_is_symmetric_in_pixels(tmp_path):
+    """The tolerance ring is specified in logical pixels, so a near-miss the
+    same distance past the edge must resolve on either axis.
+
+    Element bounds are normalized per axis (x by width, y by height); a single
+    screen_w-normalized tolerance would shrink the vertical ring by the display
+    aspect ratio and drop these clicks to the coarse zone branch instead.
+    """
+    w, h = SCREEN["screen_w"], SCREEN["screen_h"]
+    db = _one_element_db(tmp_path, left=0.40, top=0.40, width=0.20, height=0.10)
+    near = _TOL_PX - 10  # inside the ring, outside the box
+
+    past_right = _resolve_click(db, 1, 0.60 * w + near, 0.45 * h, {}, w, h)
+    past_bottom = _resolve_click(db, 1, 0.50 * w, 0.50 * h + near, {}, w, h)
+
+    assert past_right == ("Btn", "tolerance")
+    assert past_bottom == ("Btn", "tolerance")
+
+
+def test_tolerance_ring_still_has_an_edge(tmp_path):
+    """Well outside the ring on either axis, resolution falls through to the
+    coarse zone branch rather than claiming a nearby element."""
+    w, h = SCREEN["screen_w"], SCREEN["screen_h"]
+    db = _one_element_db(tmp_path, left=0.40, top=0.40, width=0.20, height=0.10)
+    far = _TOL_PX * 3
+
+    assert _resolve_click(db, 1, 0.60 * w + far, 0.45 * h, {}, w, h)[1] == "zone"
+    assert _resolve_click(db, 1, 0.50 * w, 0.50 * h + far, {}, w, h)[1] == "zone"
 
 
 def test_text_excluded_by_default(fixture_db, day_window):
