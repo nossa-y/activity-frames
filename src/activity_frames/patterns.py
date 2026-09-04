@@ -8,12 +8,30 @@ only when it actually repeated.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
+from ._time import local_day_string, parse_epoch
 from .db import Database
 
 MIN_FREQUENCY = 3
-_GENERIC_ELEMENTS = {"scroll area", "group", "cell", "text", "text field"}
+
+# Elements the recorder could not meaningfully name. Clicking one says nothing
+# about what the user did, so no detector should surface it. This set is the
+# single source of truth: _is_generic() is the check, and the SQL form below is
+# derived from it rather than retyped, so the two cannot drift apart.
+_GENERIC_ELEMENTS = frozenset({"scroll area", "group", "cell", "text", "text field"})
+
+# For excluding inside a query, where filtering early keeps generic rows from
+# consuming slots in a LIMIT. Compared against lower(trim(...)) so it matches
+# the same names _is_generic() does.
+_GENERIC_SQL = ",".join("?" * len(_GENERIC_ELEMENTS))
+_GENERIC_PARAMS = tuple(sorted(_GENERIC_ELEMENTS))
+
+
+def _is_generic(name: str | None) -> bool:
+    """True for an element name that carries no information about the action."""
+    return (name or "").strip().lower() in _GENERIC_ELEMENTS
 
 
 @dataclass
@@ -45,17 +63,17 @@ def detect(db: Database, start_utc: str, end_utc: str,
 
 def repeated_clicks(db: Database, start: str, end: str) -> list[WorkPattern]:
     rows = db.rows(
-        """
+        f"""
         SELECT element_name, element_role, COUNT(*) as cnt FROM ui_events
         WHERE timestamp BETWEEN ? AND ?
           AND event_type = 'click'
           AND element_name IS NOT NULL AND element_name != ''
-          AND element_name NOT IN ('scroll area','group','cell','text','text field')
+          AND lower(trim(element_name)) NOT IN ({_GENERIC_SQL})
         GROUP BY element_name, element_role
         HAVING cnt >= ?
         ORDER BY cnt DESC LIMIT 20
         """,
-        (start, end, MIN_FREQUENCY),
+        (start, end, *_GENERIC_PARAMS, MIN_FREQUENCY),
     )
     return [
         WorkPattern(
@@ -133,8 +151,12 @@ def action_sequences(db: Database, start: str, end: str) -> list[WorkPattern]:
         return []
     actions = []
     for name, role in rows:
-        name = (name or "").strip()
-        actions.append(f"[{role or 'element'}]" if name in _GENERIC_ELEMENTS else name)
+        # A generic element keeps its slot -- the click did happen -- but stands
+        # in as its role, so the sequence reads as a shape rather than a name
+        # the recorder never actually resolved.
+        actions.append(
+            f"[{role or 'element'}]" if _is_generic(name) else (name or "").strip()
+        )
 
     bigrams: dict[str, int] = {}
     trigrams: dict[str, int] = {}
@@ -218,30 +240,47 @@ def repeated_text(db: Database, start: str, end: str) -> list[WorkPattern]:
     return out[:10]
 
 
+MIN_CLICKS_PER_DAY = 3   # a day only counts toward a habit above this floor
+
+
 def daily_habits(db: Database, start: str, end: str) -> list[WorkPattern]:
     rows = db.rows(
         """
-        SELECT date(timestamp) as day, element_name, COUNT(*) as cnt FROM ui_events
+        SELECT timestamp, element_name FROM ui_events
         WHERE timestamp BETWEEN ? AND ?
           AND event_type = 'click'
           AND element_name IS NOT NULL AND element_name != ''
-          AND element_name NOT IN ('scroll area','group')
-        GROUP BY day, element_name
-        HAVING cnt >= 3
-        ORDER BY element_name, day
+        ORDER BY element_name, timestamp
         """,
         (start, end),
     )
+
+    # Bucket by LOCAL calendar day. SQLite's date() buckets by UTC, so for a
+    # user far enough from UTC one local day straddles a UTC boundary and
+    # counted as two -- and since a habit is "days >= 2" below, that reported
+    # a habit out of activity that only ever happened once.
+    per_day: dict[tuple[str, str], int] = {}
+    for ts, name in rows:
+        if not name or _is_generic(name):
+            continue
+        epoch = parse_epoch(ts or "")
+        if epoch <= 0:
+            continue
+        day = local_day_string(datetime.fromtimestamp(epoch, tz=timezone.utc))
+        per_day[(name, day)] = per_day.get((name, day), 0) + 1
+
     habits: dict[str, dict] = {}
-    for _day, name, cnt in rows:
-        if not name:
+    for (name, _day), cnt in per_day.items():
+        if cnt < MIN_CLICKS_PER_DAY:
             continue
         h = habits.setdefault(name, {"days": 0, "total": 0})
         h["days"] += 1
-        h["total"] += int(cnt)
+        h["total"] += cnt
     keep = sorted(
         ((n, h) for n, h in habits.items() if h["days"] >= 2),
-        key=lambda nh: -nh[1]["total"],
+        # name breaks ties so output stays deterministic regardless of the
+        # order rows arrive in (the SQL ORDER BY no longer does it for us).
+        key=lambda nh: (-nh[1]["total"], nh[0]),
     )
     return [
         WorkPattern(
