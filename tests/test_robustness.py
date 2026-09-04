@@ -105,6 +105,58 @@ def test_malformed_timestamps_are_skipped(tmp_path):
     assert all(f.app != "App" or f.start != "?" for f in doc.frames)
 
 
+def test_unparseable_event_timestamps_are_not_attributed(tmp_path):
+    """An event whose timestamp will not parse is dropped, not pinned to the
+    window's first frame.
+
+    The SQL window is a string comparison, so a stamp like
+    "2026-07-04T99:99:99" is inside the range but yields epoch 0.0 -- and
+    nearest_index(frame_epochs, 0.0) resolves to index 0. Left unguarded, a
+    click made in one app is attributed to whichever app happened to be open
+    first that day, at high confidence if it carried a native label.
+    """
+    from activity_frames.enrich import enrich_events
+
+    path = tmp_path / "badevent.sqlite"
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE frames (id INTEGER PRIMARY KEY, timestamp TIMESTAMP,
+            app_name TEXT, window_name TEXT, browser_url TEXT, focused BOOLEAN);
+        CREATE TABLE ui_events (id INTEGER PRIMARY KEY, timestamp DATETIME,
+            event_type TEXT, x INT, y INT, text_content TEXT, app_name TEXT,
+            element_name TEXT, element_role TEXT);
+        """
+    )
+    for ts, app in (("09:00:00", "Mail"), ("15:00:00", "Chrome")):
+        conn.execute(
+            "INSERT INTO frames (timestamp, app_name, window_name, focused) "
+            "VALUES (?, ?, 'W', 1)",
+            (f"2026-07-04T{ts}.000000+00:00", app),
+        )
+    for bad in ("2026-07-04T99:99:99", "2026-07-04T10:00"):
+        conn.execute(
+            "INSERT INTO ui_events (timestamp, event_type, app_name, "
+            "element_name, element_role) VALUES (?, 'click', 'Chrome', "
+            "'Merge', 'AXButton')",
+            (bad,),
+        )
+    conn.execute(
+        "INSERT INTO ui_events (timestamp, event_type, app_name, element_name, "
+        "element_role) VALUES ('2026-07-04T15:00:01.000000+00:00', 'click', "
+        "'Chrome', 'Good', 'AXButton')"
+    )
+    conn.commit()
+    conn.close()
+
+    events = enrich_events(Database(str(path)), "2026-07-04T00:00:00",
+                           "2026-07-05T00:00:00")
+    assert [e.label for e in events] == ["Good"]
+    assert all(e.epoch > 0 for e in events)
+    # nothing was parked on the first frame of the day
+    assert not any(e.app == "Mail" for e in events)
+
+
 def test_parse_epoch_never_raises():
     for junk in ["", "x", "2026", "not-a-date", "2026-99-99T00:00:00", None or ""]:
         assert parse_epoch(junk) == 0.0
